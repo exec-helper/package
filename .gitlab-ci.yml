@@ -1,0 +1,28 @@
+image: dock0/arch
+
+before_script:
+    - pacman -Sy --noconfirm
+    - pacman -S --noconfirm base-devel
+
+stages:
+    - build
+    - test
+
+PKGBUILD:build:
+    stage: build
+    script: 
+        - cd arch-linux
+        - makepkg -s
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - *.tar.xz
+
+PKGBUILD:test:
+    stage: test
+    dependencies:
+        - PKGBUILD:build
+    script:
+        - pacman -S --noconfirm --needed namcap
+        - namcap PKGBUILD
+        - namcap *.tar.xz
