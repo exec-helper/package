@@ -16,7 +16,7 @@ PKGBUILD:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - *.tar.xz
+            - "*.tar.xz"
 
 PKGBUILD:test:
     stage: test
