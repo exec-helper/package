@@ -36,5 +36,5 @@ pkgbuild:verify:
         - pkgbuild:build
     script:
         - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
-        - git submodules update --init
+        - git submodule update --init
         - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
