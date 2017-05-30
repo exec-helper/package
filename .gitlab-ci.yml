@@ -2,7 +2,6 @@ image: dock0/arch
 
 before_script:
     - pacman -Sy --noconfirm
-    - pacman -S --noconfirm base-devel
 
 stages:
     - build
@@ -12,6 +11,7 @@ stages:
 pkgbuild:build:
     stage: build
     script: 
+        - pacman -S --noconfirm --needed base-devel
         - cd pkgbuild
         - sudo -u nobody makepkg -s
     artifacts:
