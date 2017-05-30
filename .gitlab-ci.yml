@@ -5,7 +5,7 @@ before_script:
 
 stages:
     - build
-    - test
+    - analyze
     - verify
 
 pkgbuild:build:
@@ -14,14 +14,14 @@ pkgbuild:build:
         - pacman -S --noconfirm --needed base-devel
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - cd pkgbuild
-        - sudo -u nobody makepkg -s --noconfirm
+        - sudo -u nobody makepkg -s --noconfirm --needed
     artifacts:
         expire_in: 1 day
         paths:
             - pkgbuild/*.tar.xz
 
-pkgbuild:test:
-    stage: test
+pkgbuild:analyze:
+    stage: analyze
     dependencies:
         - pkgbuild:build
     script:
@@ -35,6 +35,6 @@ pkgbuild:verify:
     dependencies:
         - pkgbuild:build
     script:
-        - pacman -U pkgbuild/*.tar.gz
+        - pacman -U pkgbuild/*.tar.xz
         - git submodules update --init
         - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
