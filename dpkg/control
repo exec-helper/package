@@ -1,0 +1,31 @@
+Source: exec-helper
+Maintainer: bverhagen <barrie.verhagen@gmail.com>
+Section: misc
+Priority: optional
+Build-Depends: 
+    cmake,
+    make,
+    libboost-program-options-dev,
+    libyaml-cpp-dev,
+    doxygen,
+    git
+Standards-Version: 3.9.8
+Homepage: https://github.com/bverhagen/exec-helper
+Vcs-Browser: https://github.com/bverhagen/exec-helper
+Vcs-Git: https://github.com/bverhagen/exec-helper.git
+
+Package: exec-helper
+Architecture: any
+Section: misc
+Priority: optional
+Depends:
+Description: How To Get Coffee In Peace: a shell meta-wrapper
+Homepage: https://github.com/bverhagen/exec-helper
+Built-using: libyaml-cpp-dev
+
+Package: exec-helper-docs
+Architecture: all
+Section: doc
+Priority: optional
+Description: HTML API documentation for exec-helper
+Homepage: https://github.com/bverhagen/exec-helper

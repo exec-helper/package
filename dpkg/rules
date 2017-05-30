@@ -1,0 +1,47 @@
+#!/usr/bin/make -f
+# output every command that modifies files on the build system.
+#DH_VERBOSE = 1
+
+# see EXAMPLES in dpkg-buildflags(1) and read /usr/share/dpkg/*
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+# see FEATURE AREAS in dpkg-buildflags(1)
+#export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# see ENVIRONMENT in dpkg-buildflags(1)
+# package maintainers to append CFLAGS
+#export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+# package maintainers to append LDFLAGS
+#export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+source_directory=exec-helper
+build_directory=build
+package = $(firstword $(shell dh_listpackages))
+prefix = $(CURDIR)/debian/$(package)
+
+# main packaging script based on dh7 syntax
+%:
+	dh $@ --sourcedirectory=${source_directory} --builddirectory=build --parallel
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)
+
+override_dh_auto_build-indep:
+	dh_auto_build -- docs-html
+
+override_dh_auto_build-dep:
+	dh_auto_build -- exec-helper docs-man
+
+override_dh_auto_build: override_dh_auto_build-indep override_dh_auto_build-dep
+
+override_dh_auto_test:
+	# No tests
+	
+override_dh_auto_install-dep:
+	cmake -DCOMPONENT=runtime -P "${build_directory}/cmake_install.cmake"
+	cmake -DCOMPONENT=docs-man -P "${build_directory}/cmake_install.cmake"
+
+override_dh_auto_install-indep:
+	cmake -DCOMPONENT=docs-html -P "${build_directory}/cmake_install.cmake"
+
+override_dh_auto_install: override_dh_auto_install-dep override_dh_auto_install-indep
