@@ -32,7 +32,7 @@ pkgbuild:test:
 pkgbuild:verify:
     stage: verify
     dependencies:
-        - PKGBUILD:build
+        - pkgbuild:build
     script:
         - pacman -U pkgbuild/*.tar.gz
         - git submodules update --init
