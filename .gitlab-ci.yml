@@ -7,6 +7,7 @@ before_script:
 stages:
     - build
     - test
+    - verify
 
 PKGBUILD:build:
     stage: build
@@ -26,3 +27,12 @@ PKGBUILD:test:
         - pacman -S --noconfirm --needed namcap
         - namcap PKGBUILD
         - namcap *.tar.xz
+
+PKGBUILD:verify:
+    stage: verify
+    dependencies:
+        - PKGBUILD:build
+    script:
+        - pacman -U *.tar.gz
+        - git submodules update --init
+        - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
