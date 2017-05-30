@@ -13,7 +13,7 @@ pkgbuild:build:
     stage: build
     script: 
         - cd pkgbuild
-        - makepkg -s
+        - sudo -u nobody makepkg -s
     artifacts:
         expire_in: 1 day
         paths:
