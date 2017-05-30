@@ -9,30 +9,31 @@ stages:
     - test
     - verify
 
-PKGBUILD:build:
+pkgbuild:build:
     stage: build
     script: 
-        - cd arch-linux
+        - cd pkgbuild
         - makepkg -s
     artifacts:
         expire_in: 1 day
         paths:
-            - "*.tar.xz"
+            - pkgbuild/*.tar.xz
 
-PKGBUILD:test:
+pkgbuild:test:
     stage: test
     dependencies:
-        - PKGBUILD:build
+        - pkgbuild:build
     script:
         - pacman -S --noconfirm --needed namcap
+        - cd pkgbuild
         - namcap PKGBUILD
         - namcap *.tar.xz
 
-PKGBUILD:verify:
+pkgbuild:verify:
     stage: verify
     dependencies:
         - PKGBUILD:build
     script:
-        - pacman -U *.tar.gz
+        - pacman -U pkgbuild/*.tar.gz
         - git submodules update --init
         - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
