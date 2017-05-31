@@ -19,6 +19,8 @@ Architecture: any
 Section: misc
 Priority: optional
 Depends:
+    ${shlibs:Depends},
+    ${misc:Depends}
 Description: How To Get Coffee In Peace: a shell meta-wrapper
 Homepage: https://github.com/bverhagen/exec-helper
 Built-using: libyaml-cpp-dev
