@@ -11,10 +11,9 @@ stages:
 pkgbuild:build:
     stage: build
     script: 
-        - pacman -S --noconfirm --needed base-devel
+        - pacman -S --noconfirm --needed base-devel make
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - cd pkgbuild
-        - sudo -u nobody makepkg -s --noconfirm --needed
+        - make pkgbuild
     artifacts:
         expire_in: 1 day
         paths:
@@ -38,3 +37,27 @@ pkgbuild:verify:
         - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
         - git submodule update --init
         - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
+
+dpkg:build:
+    image: ubuntu:xenial
+    stage: build
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential
+        - make ubuntu
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - ../*.dsc
+            - ../*.tar.*
+            - ../*.changes
+            - ../*.deb
+
+dpkg:analyze:
+    stage: analyze
+    dependencies:
+        - dpkg: build
+    script:
+        - apt-get update
+        - apt-get install --assume-yes lintian
+        - lintian
