@@ -1,4 +1,21 @@
+# Ignores for packages
 pkg/
 src/
+build/
+
+# PKGBUILD specific ignores
+pkgbuild/exec-helper/
 *.tar.xz
-arch-linux/exec-helper/
+
+# DPKG specific ignores
+*.deb
+*.tar.gz
+*.dsc
+*.changes
+dpkg/debhelper-build-stamp
+dpkg/*.log
+dpkg/*.substvars
+dpkg/exec-helper-docs/
+dpkg/exec-helper/
+dpkg/files
+dpkg/tmp/

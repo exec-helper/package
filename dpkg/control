@@ -6,7 +6,7 @@ Build-Depends:
     cmake,
     make,
     libboost-program-options-dev,
-    libyaml-cpp-dev,
+#    libyaml-cpp-dev,
     doxygen,
     git
 Standards-Version: 3.9.8

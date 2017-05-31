@@ -16,15 +16,14 @@ include /usr/share/dpkg/default.mk
 #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 source_directory=exec-helper
 build_directory=build
-package = $(firstword $(shell dh_listpackages))
-prefix = $(CURDIR)/debian/$(package)
+prefix = $(CURDIR)/debian/tmp
 
 # main packaging script based on dh7 syntax
 %:
 	dh $@ --sourcedirectory=${source_directory} --builddirectory=build --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)/usr
 
 override_dh_auto_build-indep:
 	dh_auto_build -- docs-html
