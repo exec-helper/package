@@ -56,7 +56,7 @@ dpkg:build:
 dpkg:analyze:
     stage: analyze
     dependencies:
-        - dpkg: build
+        - dpkg:build
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
