@@ -48,8 +48,9 @@ dpkg:build:
     stage: build
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts
-        - make ubuntu
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make ubuntu
     artifacts:
         expire_in: 1 day
         paths:
