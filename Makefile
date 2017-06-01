@@ -1,7 +1,9 @@
 pkgbuild:
-	cd pkgbuild && makepkg -fs
+	cd pkgbuild && makepkg -fs --noconfirm --needed
 
 dpkg:
+	# Install the build deps
+	sudo mk-build-deps -i
 	dpkg-buildpackage -jauto
 
 arch-linux: pkgbuild

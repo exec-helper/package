@@ -48,7 +48,7 @@ dpkg:build:
     stage: build
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts
         - make ubuntu
     artifacts:
         expire_in: 1 day
