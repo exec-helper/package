@@ -3,7 +3,7 @@ pkgbuild:
 
 dpkg:
 	# Install the build deps
-	sudo mk-build-deps -i
+	yes | sudo mk-build-deps -i
 	dpkg-buildpackage -jauto -us -uc
 
 arch-linux: pkgbuild
