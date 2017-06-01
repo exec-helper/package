@@ -1,39 +1,42 @@
 image: dock0/arch
 
-before_script:
-    - pacman -Sy --noconfirm
-
 stages:
     - build
     - analyze
     - verify
 
 pkgbuild:build:
+    image: dock0/arch
     stage: build
     script: 
+        - pacman -Sy --noconfirm
         - pacman -S --noconfirm --needed base-devel make
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - make pkgbuild
+        - sudo -u nobody make pkgbuild
     artifacts:
         expire_in: 1 day
         paths:
             - pkgbuild/*.tar.xz
 
 pkgbuild:analyze:
+    image: dock0/arch
     stage: analyze
     dependencies:
         - pkgbuild:build
     script:
+        - pacman -Sy --noconfirm
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
         - namcap PKGBUILD
         - namcap *.tar.xz
 
 pkgbuild:verify:
+    image: dock0/arch
     stage: verify
     dependencies:
         - pkgbuild:build
     script:
+        - pacman -Sy --noconfirm
         - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
         - git submodule update --init
         - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
