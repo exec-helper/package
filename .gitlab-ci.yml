@@ -1,5 +1,8 @@
 image: dock0/arch
 
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive     # Let gitlab checkout the submodules before running
+
 stages:
     - build
     - analyze
@@ -38,7 +41,6 @@ pkgbuild:verify:
     script:
         - pacman -Sy --noconfirm
         - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
-        - git submodule update --init
         - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
 
 dpkg:build:
