@@ -51,13 +51,17 @@ dpkg:build:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - sudo -u nobody make ubuntu
+        - mv ../*.dsc .
+        - mv ../*.tar.* .
+        - mv ../*.changes .
+        - mv ../*.deb .
     artifacts:
         expire_in: 1 day
         paths:
-            - ../*.dsc
-            - ../*.tar.*
-            - ../*.changes
-            - ../*.deb
+            - *.dsc
+            - *.tar.*
+            - *.changes
+            - *.deb
 
 dpkg:analyze:
     image: ubuntu:xenial
