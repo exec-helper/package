@@ -58,10 +58,10 @@ dpkg:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - *.dsc
-            - *.tar.*
-            - *.changes
-            - *.deb
+            - "*.dsc"
+            - "*.tar.*"
+            - "*.changes"
+            - "*.deb"
 
 dpkg:analyze:
     image: ubuntu:xenial
