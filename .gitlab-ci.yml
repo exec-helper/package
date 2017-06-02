@@ -60,6 +60,7 @@ dpkg:build:
             - ../*.deb
 
 dpkg:analyze:
+    image: ubuntu:xenial
     stage: analyze
     dependencies:
         - dpkg:build
