@@ -38,7 +38,7 @@ pkgbuild:verify:
         - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
-        - bash -x gitlab/install-aur.sh lcov
+        - bash -x exec-helper/gitlab/install-aur.sh lcov
         - mkdir -p 3rdparty/pmd
         - pushd 3rdparty/pmd && wget --no-check-certificate "https://downloads.sourceforge.net/project/pmd/pmd/5.7.0/pmd-bin-5.7.0.zip" && unzip pmd-bin-5.7.0.zip; popd
         - export PATH=$PATH:$(pwd)/build/g++/release/install/usr/bin:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
