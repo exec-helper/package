@@ -69,8 +69,7 @@ dpkg:analyze:
     dependencies:
         - dpkg:build
     script:
-        - ls -l
-        - mv "*.dsc" "*.tar.*" "*.changes" "*.deb" ..
+        - mv *.dsc *.tar.* *.changes *.deb ..
         - apt-get update
         - apt-get install --assume-yes lintian
         - lintian
