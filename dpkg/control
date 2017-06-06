@@ -3,13 +3,13 @@ Maintainer: bverhagen <barrie.verhagen@gmail.com>
 Section: misc
 Priority: optional
 Build-Depends: 
-    debhelper,
+    debhelper (>= 9),
     cmake,
     libboost-program-options-dev,
 #    libyaml-cpp-dev,
     doxygen,
     git
-Standards-Version: 3.9.8
+Standards-Version: 3.9.7
 Homepage: https://github.com/bverhagen/exec-helper
 Vcs-Browser: https://github.com/bverhagen/exec-helper
 Vcs-Git: https://github.com/bverhagen/exec-helper.git
@@ -22,7 +22,7 @@ Depends:
     ${shlibs:Depends},
     ${misc:Depends}
 Description: How To Get Coffee In Peace: a shell meta-wrapper
- This packages provides the exec-helper binaries and the man-page documentation.
+ This package provides the exec-helper binaries and the man-page documentation.
 Homepage: https://github.com/bverhagen/exec-helper
 Built-using: libyaml-cpp-dev
 
