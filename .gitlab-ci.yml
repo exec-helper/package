@@ -49,7 +49,7 @@ pkgbuild:verify:
         - verification/run-examples.sh
 
 dpkg:build:
-    image: debian:stable
+    image: debian:testing
     stage: build
     script:
         - apt-get update
@@ -69,7 +69,7 @@ dpkg:build:
             - "*.deb"
 
 dpkg:analyze:
-    image: debian:stable
+    image: debian:testing
     stage: analyze
     dependencies:
         - dpkg:build
@@ -79,8 +79,8 @@ dpkg:analyze:
         - apt-get install --assume-yes lintian
         - lintian --fail-on-warnings
 
-debian-stable:build:
-    image: debian:stable
+debian-testing:build:
+    image: debian:testing
     stage: build
     script:
         - apt-get update
@@ -99,11 +99,11 @@ debian-stable:build:
             - "*.changes"
             - "*.deb"
 
-debian-stable:analyze:
-    image: debian:stable
+debian-testing:analyze:
+    image: debian:testing
     stage: analyze
     dependencies:
-        - debian-stable:build
+        - debian-testing:build
     script:
         - mv *.dsc *.tar.* *.changes *.deb ..
         - apt-get update
