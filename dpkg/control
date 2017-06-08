@@ -8,7 +8,8 @@ Build-Depends:
     libboost-program-options-dev,
 #    libyaml-cpp-dev,
     doxygen,
-    git
+    git,
+    lsb-release
 Standards-Version: 3.9.7
 Homepage: https://github.com/bverhagen/exec-helper
 Vcs-Browser: https://github.com/bverhagen/exec-helper
