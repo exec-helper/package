@@ -39,9 +39,7 @@ pkgbuild:verify:
     dependencies:
         - pkgbuild:build
     script:
-        - pacman -Sy --noconfirm
         - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
-        - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
         - mkdir -p 3rdparty/pmd
@@ -51,6 +49,68 @@ pkgbuild:verify:
         - verification/run-examples.sh
 
 dpkg:build:
+    image: debian:stable
+    stage: build
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make debian
+        - mv ../*.dsc .
+        - mv ../*.tar.* .
+        - mv ../*.changes .
+        - mv ../*.deb .
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - "*.dsc"
+            - "*.tar.*"
+            - "*.changes"
+            - "*.deb"
+
+dpkg:analyze:
+    image: debian:stable
+    stage: analyze
+    dependencies:
+        - dpkg:build
+    script:
+        - mv *.dsc *.tar.* *.changes *.deb ..
+        - apt-get update
+        - apt-get install --assume-yes lintian
+        - lintian --fail-on-warnings
+
+debian-stable:build:
+    image: debian:stable
+    stage: build
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make debian
+        - mv ../*.dsc .
+        - mv ../*.tar.* .
+        - mv ../*.changes .
+        - mv ../*.deb .
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - "*.dsc"
+            - "*.tar.*"
+            - "*.changes"
+            - "*.deb"
+
+debian-stable:analyze:
+    image: debian:stable
+    stage: analyze
+    dependencies:
+        - debian-stable:build
+    script:
+        - mv *.dsc *.tar.* *.changes *.deb ..
+        - apt-get update
+        - apt-get install --assume-yes lintian
+        - lintian --fail-on-warnings
+
+ubuntu-xenial:build:
     image: ubuntu:xenial
     stage: build
     script:
@@ -70,13 +130,15 @@ dpkg:build:
             - "*.changes"
             - "*.deb"
 
-dpkg:analyze:
+ubuntu-xenial:analyze:
     image: ubuntu:xenial
     stage: analyze
     dependencies:
-        - dpkg:build
+        - ubuntu-xenial:build
     script:
         - mv *.dsc *.tar.* *.changes *.deb ..
         - apt-get update
         - apt-get install --assume-yes lintian
-        - lintian
+        - lintian --fail-on-warnings
+
+
