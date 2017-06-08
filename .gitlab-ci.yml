@@ -60,6 +60,7 @@ dpkg:build:
         - mv ../*.tar.* .
         - mv ../*.changes .
         - mv ../*.deb .
+        - mv ../*.buildinfo .
     artifacts:
         expire_in: 1 day
         paths:
@@ -67,6 +68,7 @@ dpkg:build:
             - "*.tar.*"
             - "*.changes"
             - "*.deb"
+            - "*.buildinfo"
 
 dpkg:analyze:
     image: debian:testing
@@ -74,7 +76,7 @@ dpkg:analyze:
     dependencies:
         - dpkg:build
     script:
-        - mv *.dsc *.tar.* *.changes *.deb ..
+        - mv *.dsc *.tar.* *.changes *.deb *.buildinfo ..
         - apt-get update
         - apt-get install --assume-yes lintian
         - lintian --fail-on-warnings
@@ -91,6 +93,7 @@ debian-testing:build:
         - mv ../*.tar.* .
         - mv ../*.changes .
         - mv ../*.deb .
+        - mv ../*.buildinfo .
     artifacts:
         expire_in: 1 day
         paths:
@@ -98,6 +101,7 @@ debian-testing:build:
             - "*.tar.*"
             - "*.changes"
             - "*.deb"
+            - "*.buildinfo"
 
 debian-testing:analyze:
     image: debian:testing
@@ -105,7 +109,7 @@ debian-testing:analyze:
     dependencies:
         - debian-testing:build
     script:
-        - mv *.dsc *.tar.* *.changes *.deb ..
+        - mv *.dsc *.tar.* *.changes *.deb *.buildinfo ..
         - apt-get update
         - apt-get install --assume-yes lintian
         - lintian --fail-on-warnings
@@ -140,5 +144,3 @@ ubuntu-xenial:analyze:
         - apt-get update
         - apt-get install --assume-yes lintian
         - lintian --fail-on-warnings
-
-
