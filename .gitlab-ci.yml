@@ -55,7 +55,7 @@ dpkg:build:
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make debian
+        - sudo -u nobody make dpkg
         - mv ../*.dsc .
         - mv ../*.tar.* .
         - mv ../*.changes .
@@ -86,9 +86,9 @@ debian-testing:build:
     stage: build
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make debian
+        - sudo -u nobody make
         - mv ../*.dsc .
         - mv ../*.tar.* .
         - mv ../*.changes .
@@ -119,9 +119,9 @@ ubuntu-xenial:build:
     stage: build
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make ubuntu
+        - sudo -u nobody make
         - mv ../*.dsc .
         - mv ../*.tar.* .
         - mv ../*.changes .
