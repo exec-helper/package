@@ -13,7 +13,7 @@ pkgbuild:build:
     script: 
         - pacman -S --noconfirm --needed base-devel
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
+        - sudo -u nobody make pkgbuild
     artifacts:
         expire_in: 1 day
         paths:
