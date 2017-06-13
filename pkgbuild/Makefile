@@ -3,6 +3,8 @@ PKG_FILE=$(BUILD_DIR)/PKGBUILD
 COMMIT=$(shell git submodule | sed "s/[- ]\([0-9a-f]*\) .*$$/\1/g")
 VERSION=$(shell git describe 2>/dev/null || echo "UNKNOWN")
 
+all: pkgbuild
+
 prepare-build-dir:
 	mkdir -p $(BUILD_DIR)
 
@@ -28,8 +30,6 @@ pkgbuild: prepare-pkg-file
 
 pkgbuild-git: prepare-pkg-file-git
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
-
-all: pkgbuild
 
 clean:
 	rm -rf $(BUILD_DIR)

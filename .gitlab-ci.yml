@@ -57,11 +57,6 @@ dpkg:build:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - sudo -u nobody make dpkg
-        - mv ../*.dsc .
-        - mv ../*.tar.* .
-        - mv ../*.changes .
-        - mv ../*.deb .
-        - mv ../*.buildinfo .
     artifacts:
         expire_in: 1 day
         paths:
@@ -77,10 +72,9 @@ dpkg:analyze:
     dependencies:
         - dpkg:build
     script:
-        - mv *.dsc *.tar.* *.changes *.deb *.buildinfo ..
         - apt-get update
         - apt-get install --assume-yes lintian
-        - lintian --fail-on-warnings
+        - cd dpkg && lintian --fail-on-warnings
 
 arch-linux:build:
     stage: build
@@ -168,11 +162,6 @@ debian-testing:build:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - sudo -u nobody make
-        - mv ../*.dsc .
-        - mv ../*.tar.* .
-        - mv ../*.changes .
-        - mv ../*.deb .
-        - mv ../*.buildinfo .
     artifacts:
         expire_in: 1 day
         paths:
@@ -188,10 +177,9 @@ debian-testing:analyze:
     dependencies:
         - debian-testing:build
     script:
-        - mv *.dsc *.tar.* *.changes *.deb *.buildinfo ..
         - apt-get update
         - apt-get install --assume-yes lintian
-        - lintian --fail-on-warnings
+        - cd dpkg && lintian --fail-on-warnings
 
 ubuntu-xenial:build:
     image: ubuntu:xenial
@@ -201,10 +189,6 @@ ubuntu-xenial:build:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - sudo -u nobody make
-        - mv ../*.dsc .
-        - mv ../*.tar.* .
-        - mv ../*.changes .
-        - mv ../*.deb .
     artifacts:
         expire_in: 1 day
         paths:
@@ -219,7 +203,6 @@ ubuntu-xenial:analyze:
     dependencies:
         - ubuntu-xenial:build
     script:
-        - mv *.dsc *.tar.* *.changes *.deb ..
         - apt-get update
         - apt-get install --assume-yes lintian
-        - lintian --fail-on-warnings
+        - cd dpkg && lintian --fail-on-warnings

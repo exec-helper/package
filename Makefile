@@ -5,6 +5,7 @@ find-distribution:
 
 clean:
 	$(MAKE) -C pkgbuild clean
+	$(MAKE) -C dpkg clean
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
@@ -17,13 +18,7 @@ pkgbuild-git:
 	$(MAKE) -C pkgbuild pkgbuild-git
 
 dpkg:
-	# Install the build deps
-	yes | sudo mk-build-deps -i
-
-	# Generate the changelog
-	dpkg/write_changelog.sh
-
-	dpkg-buildpackage -jauto -us -uc
+	$(MAKE) -C dpkg dpkg
 
 # Distributions
 arch: pkgbuild
