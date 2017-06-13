@@ -12,7 +12,6 @@ pkgbuild:
 dpkg:
 	# Install the build deps
 	yes | sudo mk-build-deps -i
-	rm ../exec-helper-build-deps_*_all.deb
 
 	# Generate the changelog
 	dpkg/write_changelog.sh
