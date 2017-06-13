@@ -13,7 +13,7 @@ list:
 pkgbuild:
 	$(MAKE) -C pkgbuild pkgbuild
 
-pkgbuild:
+pkgbuild-git:
 	$(MAKE) -C pkgbuild pkgbuild-git
 
 dpkg:
