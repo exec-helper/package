@@ -1,4 +1,1 @@
-pkg/
-src/
-*.tar.xz
-pkgbuild/exec-helper/
+pkgbuild/build/

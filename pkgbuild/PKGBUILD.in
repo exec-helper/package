@@ -1,7 +1,7 @@
 # Maintainer: Bart Verhagen <barrie.verhagen@gmail.com>
-pkgname=('exec-helper' 'exec-helper-docs')
+pkgname=('@PACKAGE@' '@PACKAGE@-docs')
 pkgbase='exec-helper'
-pkgver=r396.e976f78
+pkgver=@VERSION@
 pkgrel=1
 epoch=
 pkgdesc="Or How To Get Coffee In Peace: a shell meta-wrapper"
@@ -20,33 +20,28 @@ backup=()
 options=()
 install=
 changelog=
-source=('exec-helper::git+https://github.com/bverhagen/exec-helper.git#branch=master')
+source=('exec-helper::git+https://github.com/bverhagen/exec-helper.git#@GIT_REF@')
 noextract=()
 validpgpkeys=()
 
+_git_dir='exec-helper'
 _build_dir='build'
 
 pkgver() {
-    git_dir="$pkgname"
-    if git -C $git_dir describe > /dev/null 2>&1; then
-        printf "%s.r%s.%s" "$(git -C $git_dir describe --long | sed 's/\([^-]*-\)g/r\1/;s/-/./g')" "$(git -C $git_dir rev-list --count HEAD)" "$(git -C $git_dir rev-parse --short HEAD)"
-    else
-        printf "r%s.%s" "$(git -C $git_dir rev-list --count HEAD)" "$(git -C $git_dir rev-parse --short HEAD)"
-    fi
+    printf "%s.r%s.%s" $pkgver "$(git -C $_git_dir rev-list --count HEAD)" "$(git -C $_git_dir rev-parse --short HEAD)"
 }
 
 build() {
-    git_dir="$srcdir/$pkgname"
-    cmake -G "Unix Makefiles" -H"$git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON
+    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON
 	make -C "$_build_dir" exec-helper docs
 }
 
-package_exec-helper() {
+package_@PACKAGE@() {
     cmake -DCOMPONENT=runtime -P "$_build_dir/cmake_install.cmake"
     cmake -DCOMPONENT=docs-man -P "$_build_dir/cmake_install.cmake"
 }
 
-package_exec-helper-docs() {
+package_@PACKAGE@-docs() {
 	# options and directives that can be overridden
 	pkgdesc="HTML API documentation for exec-helper"
     arch=('any')

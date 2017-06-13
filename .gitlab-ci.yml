@@ -44,3 +44,80 @@ pkgbuild:verify:
         - export ROOT_DIR=$(pwd)
         - verification/run-examples.sh
 
+arch-linux:build:
+    stage: build
+    script: 
+        - pacman -S --noconfirm --needed base-devel
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - pkgbuild/*.tar.xz
+    only:
+        - master
+
+arch-linux:analyze:
+    stage: analyze
+    dependencies:
+        - arch-linux:build
+    script:
+        - pacman -S --noconfirm --needed namcap
+        - cd pkgbuild
+        - namcap PKGBUILD
+        - namcap *.tar.xz
+    only:
+        - master
+
+arch-linux:verify:
+    stage: verify
+    dependencies:
+        - arch-linux:build
+    script:
+        - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
+        - git submodule update --init
+        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - bash -x exec-helper/gitlab/install-aur.sh lcov
+        - mkdir -p 3rdparty/pmd
+        - pushd 3rdparty/pmd && wget --no-check-certificate "https://downloads.sourceforge.net/project/pmd/pmd/5.7.0/pmd-bin-5.7.0.zip" && unzip pmd-bin-5.7.0.zip; popd
+        - export PATH=$PATH:$(pwd)/build/g++/release/install/usr/bin:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
+        - export ROOT_DIR=$(pwd)
+        - verification/run-examples.sh
+    only:
+        - master
+
+arch-linux-git:build:
+    stage: build
+    script: 
+        - pacman -S --noconfirm --needed base-devel
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make arch-git
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - pkgbuild/*.tar.xz
+
+arch-linux-git:analyze:
+    stage: analyze
+    dependencies:
+        - arch-linux-git:build
+    script:
+        - pacman -S --noconfirm --needed namcap
+        - cd pkgbuild
+        - namcap PKGBUILD
+        - namcap *.tar.xz
+
+arch-linux-git:verify:
+    stage: verify
+    dependencies:
+        - arch-linux-git:build
+    script:
+        - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
+        - git submodule update --init
+        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - bash -x exec-helper/gitlab/install-aur.sh lcov
+        - mkdir -p 3rdparty/pmd
+        - pushd 3rdparty/pmd && wget --no-check-certificate "https://downloads.sourceforge.net/project/pmd/pmd/5.7.0/pmd-bin-5.7.0.zip" && unzip pmd-bin-5.7.0.zip; popd
+        - export PATH=$PATH:$(pwd)/build/g++/release/install/usr/bin:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
+        - export ROOT_DIR=$(pwd)
+        - verification/run-examples.sh
