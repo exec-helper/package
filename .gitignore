@@ -1,11 +1,5 @@
-# Ignores for packages
-pkg/
-src/
-build/
-
 # PKGBUILD specific ignores
-pkgbuild/exec-helper/
-*.tar.xz
+pkgbuild/build
 
 # DPKG specific ignores
 *.deb
