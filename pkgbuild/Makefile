@@ -24,10 +24,10 @@ prepare-pkg-file-git: prepare
 	sed -i "s/@PACKAGE@/exec-helper-git/g" $(PKG_FILE)
 
 pkgbuild: prepare-pkg-file
-	cd $(BUILD_DIR) && makepkg -fs
+	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
 pkgbuild-git: prepare-pkg-file-git
-	cd $(BUILD_DIR) && makepkg -fs
+	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
 all: pkgbuild
 
