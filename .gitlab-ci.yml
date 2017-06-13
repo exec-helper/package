@@ -17,7 +17,7 @@ pkgbuild:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/*.tar.xz
+            - pkgbuild/build/*.tar.xz
 
 pkgbuild:analyze:
     stage: analyze
@@ -34,7 +34,7 @@ pkgbuild:verify:
     dependencies:
         - pkgbuild:build
     script:
-        - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
@@ -53,7 +53,7 @@ arch-linux:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/*.tar.xz
+            - pkgbuild/build/*.tar.gz
     only:
         - master
 
@@ -74,7 +74,7 @@ arch-linux:verify:
     dependencies:
         - arch-linux:build
     script:
-        - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
@@ -95,7 +95,7 @@ arch-linux-git:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/*.tar.xz
+            - pkgbuild/build/*.tar.gz
 
 arch-linux-git:analyze:
     stage: analyze
@@ -112,7 +112,7 @@ arch-linux-git:verify:
     dependencies:
         - arch-linux-git:build
     script:
-        - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
