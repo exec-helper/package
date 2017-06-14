@@ -19,6 +19,7 @@ pkgbuild:build:
     artifacts:
         expire_in: 1 day
         paths:
+            - pkgbuild/build/PKGBUILD
             - pkgbuild/build/*.tar.xz
 
 pkgbuild:analyze:
@@ -30,7 +31,6 @@ pkgbuild:analyze:
         - pacman -Sy --noconfirm
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - make prepare-pkg-file
         - namcap build/PKGBUILD
         - namcap build/*.tar.xz
 
@@ -40,7 +40,7 @@ pkgbuild:verify:
     dependencies:
         - pkgbuild:build
     script:
-        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
@@ -86,7 +86,8 @@ arch-linux:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/build/*.tar.gz
+            - pkgbuild/build/PKGBUILD
+            - pkgbuild/build/*.tar.xz
     only:
         - master
 
@@ -97,7 +98,6 @@ arch-linux:analyze:
     script:
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - make prepare-pkg-file
         - namcap build/PKGBUILD
         - namcap build/*.tar.xz
     only:
@@ -108,7 +108,7 @@ arch-linux:verify:
     dependencies:
         - arch-linux:build
     script:
-        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
@@ -129,7 +129,8 @@ arch-linux-git:build:
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/build/*.tar.gz
+            - pkgbuild/build/PKGBUILD
+            - pkgbuild/build/*.tar.xz
 
 arch-linux-git:analyze:
     stage: analyze
@@ -138,7 +139,6 @@ arch-linux-git:analyze:
     script:
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - make prepare-pkg-file
         - namcap build/PKGBUILD
         - namcap build/*.tar.xz
 
@@ -147,7 +147,7 @@ arch-linux-git:verify:
     dependencies:
         - arch-linux-git:build
     script:
-        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - git submodule update --init
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - bash -x exec-helper/gitlab/install-aur.sh lcov
