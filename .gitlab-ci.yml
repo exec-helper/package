@@ -26,8 +26,9 @@ pkgbuild:analyze:
     script:
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - namcap PKGBUILD
-        - namcap *.tar.xz
+        - make prepare-pkg-file
+        - namcap build/PKGBUILD
+        - namcap build/*.tar.xz
 
 pkgbuild:verify:
     stage: verify
@@ -64,8 +65,9 @@ arch-linux:analyze:
     script:
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - namcap PKGBUILD
-        - namcap *.tar.xz
+        - make prepare-pkg-file
+        - namcap build/PKGBUILD
+        - namcap build/*.tar.xz
     only:
         - master
 
@@ -104,8 +106,9 @@ arch-linux-git:analyze:
     script:
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - namcap PKGBUILD
-        - namcap *.tar.xz
+        - make prepare-pkg-file
+        - namcap build/PKGBUILD
+        - namcap build/*.tar.xz
 
 arch-linux-git:verify:
     stage: verify
