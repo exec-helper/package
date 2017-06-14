@@ -24,7 +24,7 @@ pkgbuild:analyze:
     dependencies:
         - pkgbuild:build
     script:
-        - pacman -S --noconfirm --needed namcap
+        - pacman -S --noconfirm --needed namcap make
         - cd pkgbuild
         - make prepare-pkg-file
         - namcap build/PKGBUILD
@@ -63,7 +63,7 @@ arch-linux:analyze:
     dependencies:
         - arch-linux:build
     script:
-        - pacman -S --noconfirm --needed namcap
+        - pacman -S --noconfirm --needed namcap make
         - cd pkgbuild
         - make prepare-pkg-file
         - namcap build/PKGBUILD
@@ -104,7 +104,7 @@ arch-linux-git:analyze:
     dependencies:
         - arch-linux-git:build
     script:
-        - pacman -S --noconfirm --needed namcap
+        - pacman -S --noconfirm --needed namcap make
         - cd pkgbuild
         - make prepare-pkg-file
         - namcap build/PKGBUILD
