@@ -4,12 +4,27 @@ before_script:
     - pacman -Sy --noconfirm
 
 stages:
+    - prepare
     - build
     - analyze
     - verify
 
+pkgbuild:prepare:
+    stage: prepare
+    script:
+        - pacman -S --noconfirm --needed make sed lsb-release
+        - cd pkgbuild
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make prepare
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - pkgbuild/build/*
+
 pkgbuild:build:
     stage: build
+    dependencies:
+        - pkgbuild:prepare
     script: 
         - pacman -S --noconfirm --needed base-devel
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
