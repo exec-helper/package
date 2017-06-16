@@ -12,7 +12,7 @@ stages:
 pkgbuild:prepare:
     stage: prepare
     script:
-        - pacman -S --noconfirm --needed make sed lsb-release
+        - pacman -S --noconfirm --needed make sed lsb-release sudo
         - cd pkgbuild
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - sudo -u nobody make prepare
