@@ -9,17 +9,28 @@ stages:
     - analyze
     - verify
 
-pkgbuild:prepare:
-    stage: prepare
+.pkgbuild:prepare: &pkgbuild_prepare
     script:
         - pacman -S --noconfirm --needed make sed lsb-release sudo
         - cd pkgbuild
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make prepare
+        - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
             - pkgbuild/build/*
+
+pkgbuild:prepare:
+    stage: prepare
+    variables:
+        - MAKE_TARGETS=prepare
+    <<: *pkgbuild_prepare
+
+arch-linux:prepare:
+    stage: prepare
+    variables:
+        - MAKE_TARGETS="arch target=prepare"
+    <<: *pkgbuild_prepare
 
 pkgbuild:build:
     stage: build
