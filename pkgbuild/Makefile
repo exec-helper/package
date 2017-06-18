@@ -25,6 +25,9 @@ pkgbuild: prepare-common
 pkgbuild-git: prepare-common
 	sed -i "s/@PACKAGE@/exec-helper-git/g" $(PKG_FILE)
 
+prepare: pkgbuild
+prepare-git: pkgbuild-git
+
 build: pkgbuild
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
