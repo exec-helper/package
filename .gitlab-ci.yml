@@ -23,13 +23,13 @@ stages:
 pkgbuild:prepare:
     stage: prepare
     variables:
-        - MAKE_TARGETS=prepare
+        MAKE_TARGETS: prepare
     <<: *pkgbuild_prepare
 
 arch-linux:prepare:
     stage: prepare
     variables:
-        - MAKE_TARGETS="arch target=prepare"
+        MAKE_TARGETS: arch target=prepare
     <<: *pkgbuild_prepare
 
 pkgbuild:build:
