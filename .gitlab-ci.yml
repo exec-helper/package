@@ -41,7 +41,7 @@ pkgbuild:prepare:
 arch-linux:prepare:
     stage: prepare
     variables:
-        MAKE_TARGETS: arch target=prepare
+        MAKE_TARGETS: arch TARGET=prepare
     only:
         - master
     <<: *pkgbuild_prepare
@@ -49,7 +49,7 @@ arch-linux:prepare:
 arch-linux-git:prepare:
     stage: prepare
     variables:
-        MAKE_TARGETS: arch target=prepare-git
+        MAKE_TARGETS: arch TARGET=prepare-git
     <<: *pkgbuild_prepare
 
 pkgbuild:build:
@@ -75,7 +75,7 @@ arch-linux-git:build:
     dependencies:
         - arch-linux-git:prepare
     variables:
-        MAKE_TARGETS: arch target=build-git
+        MAKE_TARGETS: arch TARGET=build-git
     <<: *pkgbuild_build
 
 pkgbuild:analyze:
