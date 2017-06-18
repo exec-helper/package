@@ -21,6 +21,8 @@ stages:
             - pkgbuild/build/*
 
 .pkgbuild:build: &pkgbuild_build
+    variables:
+        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script: 
         - pacman -S --noconfirm --needed base-devel lsb-release sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
@@ -31,6 +33,15 @@ stages:
         paths:
             - pkgbuild/build/PKGBUILD
             - pkgbuild/build/*.tar.xz
+
+.pkgbuild:analyze: &pkgbuild_analyze
+    variables:
+        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
+    script:
+        - pacman -S --noconfirm --needed namcap
+        - cd pkgbuild
+        - namcap build/PKGBUILD
+        - namcap build/*.tar.xz
 
 pkgbuild:prepare:
     stage: prepare
@@ -82,11 +93,21 @@ pkgbuild:analyze:
     stage: analyze
     dependencies:
         - pkgbuild:build
-    script:
-        - pacman -S --noconfirm --needed namcap
-        - cd pkgbuild
-        - namcap build/PKGBUILD
-        - namcap build/*.tar.xz
+    <<: *pkgbuild_analyze
+
+arch-linux:analyze:
+    stage: analyze
+    dependencies:
+        - arch-linux:build
+    <<: *pkgbuild_analyze
+    only:
+        - master
+
+arch-linux-git:analyze:
+    stage: analyze
+    dependencies:
+        - arch-linux-git:build
+    <<: *pkgbuild_analyze
 
 pkgbuild:verify:
     stage: verify
@@ -102,18 +123,6 @@ pkgbuild:verify:
         - export PATH=$PATH:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
         - export ROOT_DIR=$(pwd)
         - verification/run-examples.sh
-
-arch-linux:analyze:
-    stage: analyze
-    dependencies:
-        - arch-linux:build
-    script:
-        - pacman -S --noconfirm --needed namcap
-        - cd pkgbuild
-        - namcap build/PKGBUILD
-        - namcap build/*.tar.xz
-    only:
-        - master
 
 arch-linux:verify:
     stage: verify
@@ -131,16 +140,6 @@ arch-linux:verify:
         - verification/run-examples.sh
     only:
         - master
-
-arch-linux-git:analyze:
-    stage: analyze
-    dependencies:
-        - arch-linux-git:build
-    script:
-        - pacman -S --noconfirm --needed namcap
-        - cd pkgbuild
-        - namcap build/PKGBUILD
-        - namcap build/*.tar.xz
 
 arch-linux-git:verify:
     stage: verify
