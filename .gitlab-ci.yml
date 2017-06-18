@@ -12,13 +12,23 @@ stages:
 .pkgbuild:prepare: &pkgbuild_prepare
     script:
         - pacman -S --noconfirm --needed make sed lsb-release sudo
-        - cd pkgbuild
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
             - pkgbuild/build/*
+
+.pkgbuild:build: &pkgbuild_build
+    script: 
+        - pacman -S --noconfirm --needed base-devel
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - pkgbuild/build/PKGBUILD
+            - pkgbuild/build/*.tar.xz
 
 pkgbuild:prepare:
     stage: prepare
@@ -30,21 +40,41 @@ arch-linux:prepare:
     stage: prepare
     variables:
         MAKE_TARGETS: arch target=prepare
+    only:
+        - master
+    <<: *pkgbuild_prepare
+
+arch-linux-git:prepare:
+    stage: prepare
+    variables:
+        MAKE_TARGETS: arch target=prepare-git
     <<: *pkgbuild_prepare
 
 pkgbuild:build:
     stage: build
     dependencies:
         - pkgbuild:prepare
-    script: 
-        - pacman -S --noconfirm --needed base-devel
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make pkgbuild
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - pkgbuild/build/PKGBUILD
-            - pkgbuild/build/*.tar.xz
+    variables:
+        MAKE_TARGETS: ""
+    <<: *pkgbuild_build
+
+arch-linux:build:
+    stage: build
+    dependencies:
+        - arch-linux:prepare
+    variables:
+        MAKE_TARGETS: arch
+    only:
+        - master
+    <<: *pkgbuild_build
+
+arch-linux-git:build:
+    stage: build
+    dependencies:
+        - arch-linux-git:prepare
+    variables:
+        MAKE_TARGETS: arch target=build-git
+    <<: *pkgbuild_build
 
 pkgbuild:analyze:
     stage: analyze
@@ -70,20 +100,6 @@ pkgbuild:verify:
         - export PATH=$PATH:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
         - export ROOT_DIR=$(pwd)
         - verification/run-examples.sh
-
-arch-linux:build:
-    stage: build
-    script: 
-        - pacman -S --noconfirm --needed base-devel
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - pkgbuild/build/PKGBUILD
-            - pkgbuild/build/*.tar.xz
-    only:
-        - master
 
 arch-linux:analyze:
     stage: analyze
@@ -113,18 +129,6 @@ arch-linux:verify:
         - verification/run-examples.sh
     only:
         - master
-
-arch-linux-git:build:
-    stage: build
-    script: 
-        - pacman -S --noconfirm --needed base-devel
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make arch-git
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - pkgbuild/build/PKGBUILD
-            - pkgbuild/build/*.tar.xz
 
 arch-linux-git:analyze:
     stage: analyze

@@ -3,11 +3,7 @@ all: build
 pkgbuild:
 	$(MAKE) -C pkgbuild $(TARGET) 
 
-pkgbuild-git:
-	$(MAKE) -C pkgbuild $(TARGET)
-
 arch: pkgbuild
-arch-git: pkgbuild-git
 
 find-distribution:
 	$(MAKE) $(shell lsb_release --id --short | tr A-Z a-z) TARGET=$(TARGET)
