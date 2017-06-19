@@ -73,16 +73,12 @@ pkgbuild:build:
     stage: build
     dependencies:
         - pkgbuild:prepare
-    variables:
-        MAKE_TARGETS: ""
     <<: *pkgbuild_build
 
 arch-linux:build:
     stage: build
     dependencies:
         - arch-linux:prepare
-    variables:
-        MAKE_TARGETS: arch
     only:
         - master
     <<: *pkgbuild_build
@@ -91,8 +87,6 @@ arch-linux-git:build:
     stage: build
     dependencies:
         - arch-linux-git:prepare
-    variables:
-        MAKE_TARGETS: arch TARGET=build-git
     <<: *pkgbuild_build
 
 pkgbuild:analyze:
