@@ -1,54 +1,139 @@
 image: dock0/arch
 
-variables:
-  GIT_SUBMODULE_STRATEGY: recursive     # Let gitlab checkout the submodules before running
+before_script:
+    - pacman -Sy --noconfirm
 
 stages:
+    - prepare
     - build
     - analyze
     - verify
 
-pkgbuild:build:
-    image: dock0/arch
-    stage: build
-    script: 
-        - pacman -Sy --noconfirm
-        - pacman -S --noconfirm --needed base-devel make
+.pkgbuild:prepare: &pkgbuild_prepare
+    script:
+        - pacman -S --noconfirm --needed make sed lsb-release sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make pkgbuild
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
+            - pkgbuild/build/*
+
+.pkgbuild:build: &pkgbuild_build
+    script: 
+        - pacman -S --noconfirm --needed base-devel lsb-release sudo
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - pkgbuild/build/PKGBUILD
             - pkgbuild/build/*.tar.xz
 
-pkgbuild:analyze:
-    image: dock0/arch
-    stage: analyze
-    dependencies:
-        - pkgbuild:build
+.pkgbuild:analyze: &pkgbuild_analyze
+    variables:
+        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
-        - pacman -Sy --noconfirm
         - pacman -S --noconfirm --needed namcap
         - cd pkgbuild
-        - make prepare-pkg-file
         - namcap build/PKGBUILD
         - namcap build/*.tar.xz
 
+.pkgbuild:verify: &pkgbuild_verify
+    variables:
+        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
+    script:
+        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
+        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - verification/run-examples.sh
+
+pkgbuild:prepare:
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
+    <<: *pkgbuild_prepare
+
+arch-linux:prepare:
+    stage: prepare
+    variables:
+        MAKE_TARGETS: arch TARGET=prepare
+    only:
+        - master
+    <<: *pkgbuild_prepare
+
+arch-linux-git:prepare:
+    stage: prepare
+    variables:
+        MAKE_TARGETS: arch TARGET=prepare-git
+    <<: *pkgbuild_prepare
+
+pkgbuild:build:
+    stage: build
+    dependencies:
+        - pkgbuild:prepare
+    variables:
+        MAKE_TARGETS: ""
+    <<: *pkgbuild_build
+
+arch-linux:build:
+    stage: build
+    dependencies:
+        - arch-linux:prepare
+    variables:
+        MAKE_TARGETS: arch
+    only:
+        - master
+    <<: *pkgbuild_build
+
+arch-linux-git:build:
+    stage: build
+    dependencies:
+        - arch-linux-git:prepare
+    variables:
+        MAKE_TARGETS: arch TARGET=build-git
+    <<: *pkgbuild_build
+
+pkgbuild:analyze:
+    stage: analyze
+    dependencies:
+        - pkgbuild:build
+    <<: *pkgbuild_analyze
+
+arch-linux:analyze:
+    stage: analyze
+    dependencies:
+        - arch-linux:build
+    only:
+        - master
+    <<: *pkgbuild_analyze
+
+arch-linux-git:analyze:
+    stage: analyze
+    dependencies:
+        - arch-linux-git:build
+    <<: *pkgbuild_analyze
+
 pkgbuild:verify:
-    image: dock0/arch
     stage: verify
     dependencies:
         - pkgbuild:build
-    script:
-        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
-        - git submodule update --init
-        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
-        - bash -x exec-helper/gitlab/install-aur.sh lcov
-        - mkdir -p 3rdparty/pmd
-        - pushd 3rdparty/pmd && wget --no-check-certificate "https://downloads.sourceforge.net/project/pmd/pmd/5.7.0/pmd-bin-5.7.0.zip" && unzip pmd-bin-5.7.0.zip; popd
-        - export PATH=$PATH:$(pwd)/build/g++/release/install/usr/bin:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
-        - export ROOT_DIR=$(pwd)
-        - verification/run-examples.sh
+    <<: *pkgbuild_verify
+
+arch-linux:verify:
+    stage: verify
+    dependencies:
+        - arch-linux:build
+    only:
+        - master
+    <<: *pkgbuild_verify
+
+arch-linux-git:verify:
+    stage: verify
+    dependencies:
+        - arch-linux-git:build
+    <<: *pkgbuild_verify
 
 dpkg:build:
     image: debian:testing
@@ -76,86 +161,6 @@ dpkg:analyze:
         - apt-get update
         - apt-get install --assume-yes lintian
         - cd dpkg && lintian --fail-on-warnings
-
-arch-linux:build:
-    stage: build
-    script: 
-        - pacman -S --noconfirm --needed base-devel
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - pkgbuild/build/*.tar.gz
-    only:
-        - master
-
-arch-linux:analyze:
-    stage: analyze
-    dependencies:
-        - arch-linux:build
-    script:
-        - pacman -S --noconfirm --needed namcap
-        - cd pkgbuild
-        - make prepare-pkg-file
-        - namcap build/PKGBUILD
-        - namcap build/*.tar.xz
-    only:
-        - master
-
-arch-linux:verify:
-    stage: verify
-    dependencies:
-        - arch-linux:build
-    script:
-        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
-        - git submodule update --init
-        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
-        - bash -x exec-helper/gitlab/install-aur.sh lcov
-        - mkdir -p 3rdparty/pmd
-        - pushd 3rdparty/pmd && wget --no-check-certificate "https://downloads.sourceforge.net/project/pmd/pmd/5.7.0/pmd-bin-5.7.0.zip" && unzip pmd-bin-5.7.0.zip; popd
-        - export PATH=$PATH:$(pwd)/build/g++/release/install/usr/bin:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
-        - export ROOT_DIR=$(pwd)
-        - verification/run-examples.sh
-    only:
-        - master
-
-arch-linux-git:build:
-    stage: build
-    script: 
-        - pacman -S --noconfirm --needed base-devel
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make arch-git
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - pkgbuild/build/*.tar.gz
-
-arch-linux-git:analyze:
-    stage: analyze
-    dependencies:
-        - arch-linux-git:build
-    script:
-        - pacman -S --noconfirm --needed namcap
-        - cd pkgbuild
-        - make prepare-pkg-file
-        - namcap build/PKGBUILD
-        - namcap build/*.tar.xz
-
-arch-linux-git:verify:
-    stage: verify
-    dependencies:
-        - arch-linux-git:build
-    script:
-        - pacman --needed --noconfirm -U pkgbuild/build/*.tar.gz
-        - git submodule update --init
-        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
-        - bash -x exec-helper/gitlab/install-aur.sh lcov
-        - mkdir -p 3rdparty/pmd
-        - pushd 3rdparty/pmd && wget --no-check-certificate "https://downloads.sourceforge.net/project/pmd/pmd/5.7.0/pmd-bin-5.7.0.zip" && unzip pmd-bin-5.7.0.zip; popd
-        - export PATH=$PATH:$(pwd)/build/g++/release/install/usr/bin:$(pwd)/3rdparty/pmd/pmd-bin-5.7.0/bin
-        - export ROOT_DIR=$(pwd)
-        - verification/run-examples.sh
 
 debian-testing:build:
     image: debian:testing
@@ -209,3 +214,4 @@ ubuntu-xenial:analyze:
         - apt-get update
         - apt-get install --assume-yes lintian
         - cd dpkg && lintian --fail-on-warnings
+
