@@ -26,7 +26,6 @@ stages:
     script: 
         - pacman -S --noconfirm --needed base-devel sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - echo Making targets=${MAKE_TARGETS}
         - cd pkgbuild/build
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
     artifacts:
@@ -74,16 +73,12 @@ pkgbuild:build:
     stage: build
     dependencies:
         - pkgbuild:prepare
-    variables:
-        MAKE_TARGETS: ""
     <<: *pkgbuild_build
 
 arch-linux:build:
     stage: build
     dependencies:
         - arch-linux:prepare
-    variables:
-        MAKE_TARGETS: arch
     only:
         - master
     <<: *pkgbuild_build
@@ -92,8 +87,6 @@ arch-linux-git:build:
     stage: build
     dependencies:
         - arch-linux-git:prepare
-    variables:
-        MAKE_TARGETS: arch TARGET=build-git
     <<: *pkgbuild_build
 
 pkgbuild:analyze:
