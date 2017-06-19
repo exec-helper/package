@@ -26,8 +26,8 @@ stages:
     script: 
         - pacman -S --noconfirm --needed base-devel sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - echo Making targets= ${MAKE_TARGETS}
-	    - cd pkgbuild/dir
+        - echo Making targets=${MAKE_TARGETS}
+        - cd pkgbuild/dir
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
     artifacts:
         expire_in: 1 day
