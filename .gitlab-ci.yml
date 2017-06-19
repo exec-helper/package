@@ -21,11 +21,14 @@ stages:
             - pkgbuild/build/*
 
 .pkgbuild:build: &pkgbuild_build
+    variables:
+        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script: 
-        - pacman -S --noconfirm --needed base-devel lsb-release sudo
+        - pacman -S --noconfirm --needed base-devel sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - echo Making targets= ${MAKE_TARGETS}
-        - sudo -u nobody make ${MAKE_TARGETS}
+	    - cd pkgbuild/dir
+        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
     artifacts:
         expire_in: 1 day
         paths:
@@ -42,8 +45,6 @@ stages:
         - namcap build/*.tar.xz
 
 .pkgbuild:verify: &pkgbuild_verify
-    variables:
-        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
         - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
