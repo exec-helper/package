@@ -1,4 +1,6 @@
 image: dock0/arch
+variables:
+      GIT_SUBMODULE_STRATEGY: recursive
 
 before_script:
     - pacman -Sy --noconfirm
