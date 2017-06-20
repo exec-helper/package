@@ -3,7 +3,7 @@ PKG_FILE=$(BUILD_DIR)/PKGBUILD
 COMMIT=$(shell git submodule | sed "s/[- ]\([0-9a-f]*\) .*$$/\1/g")
 VERSION=$(shell git describe 2>/dev/null || echo "UNKNOWN")
 
-all: pkgbuild
+all: build
 
 prepare-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -17,21 +17,27 @@ prepare-version: $(PKG_FILE)
 prepare-commit: $(PKG_FILE)
 	sed -i "s/@GIT_REF@/commit=$(COMMIT)/g" $(PKG_FILE)
 
-prepare: prepare-commit prepare-version
+prepare-common: prepare-commit prepare-version
 
-prepare-pkg-file: prepare
+pkgbuild: prepare-common
 	sed -i "s/@PACKAGE@/exec-helper/g" $(PKG_FILE)
 
-prepare-pkg-file-git: prepare
+pkgbuild-git: prepare-common
 	sed -i "s/@PACKAGE@/exec-helper-git/g" $(PKG_FILE)
 
-pkgbuild: prepare-pkg-file
+prepare: pkgbuild
+prepare-git: pkgbuild-git
+
+build: pkgbuild
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
-pkgbuild-git: prepare-pkg-file-git
+<<<<<<< HEAD
+=======
+build-git: pkgbuild-git
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
+>>>>>>> dev
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: prepare-build-dir prepare-pkg-file prepare-pkg-file-git pkgbuild pkgbuild-git clean all
+.PHONY: prepare-build-dir prepare-version prepare-commit prepare-common pkgbuild pkgbuild-git build build-git clean all
