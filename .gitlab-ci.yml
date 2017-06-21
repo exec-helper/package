@@ -2,9 +2,6 @@ image: dock0/arch
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
-before_script:
-    - pacman -Sy --noconfirm
-
 stages:
     - prepare
     - build
@@ -13,7 +10,7 @@ stages:
 
 .pkgbuild:prepare: &pkgbuild_prepare
     script:
-        - pacman -S --noconfirm --needed make sed lsb-release sudo
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
@@ -24,7 +21,7 @@ stages:
 
 .pkgbuild:build: &pkgbuild_build
     script: 
-        - pacman -S --noconfirm --needed base-devel lsb-release sudo
+        - pacman -Sy --noconfirm --needed base-devel lsb-release sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - cd pkgbuild/build
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
@@ -38,7 +35,7 @@ stages:
     variables:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
-        - pacman -S --noconfirm --needed namcap
+        - pacman -Sy --noconfirm --needed namcap
         - cd pkgbuild
         - namcap build/PKGBUILD
         - namcap build/*.tar.xz
@@ -48,7 +45,7 @@ stages:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
         - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
-        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - verification/run-examples.sh
 
 pkgbuild:prepare:
