@@ -28,15 +28,12 @@ pkgbuild-git: prepare-common
 prepare: pkgbuild
 prepare-git: pkgbuild-git
 
-build: pkgbuild
+build: prepare
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
-<<<<<<< HEAD
-=======
-build-git: pkgbuild-git
+build-git: prepare-git
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
->>>>>>> dev
 clean:
 	rm -rf $(BUILD_DIR)
 
