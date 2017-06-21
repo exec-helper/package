@@ -26,7 +26,9 @@ write-changelog: $(CHANGELOG_FILE)
 check-build-deps:
 	yes | sudo mk-build-deps -i
 
-dpkg:: $(EXEC_HELPER_DEPS) write-changelog check-build-deps
+prepare: write-changelog
+
+build:: $(EXEC_HELPER_DEPS) prepare check-build-deps
 	dpkg-buildpackage -jauto -us -uc
 
 clean:
