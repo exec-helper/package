@@ -44,8 +44,6 @@ stages:
         - namcap build/*.tar.xz
 
 .pkgbuild:verify: &pkgbuild_verify
-    variables:
-        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
         - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
