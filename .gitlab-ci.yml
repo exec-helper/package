@@ -8,6 +8,10 @@ stages:
     - analyze
     - verify
 
+.enable_sudo_nobody: &enable_sudo_nobody
+    script:
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+
 .pkgbuild:prepare: &pkgbuild_prepare
     script:
         - pacman -Sy --noconfirm --needed make sed lsb-release sudo
@@ -133,6 +137,7 @@ arch-linux-git:verify:
     variables:
         MAKE_TARGETS: prepare
     script:
+        - apt-get update
         - apt-get install --assume-yes sudo make sed lsb-release
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
         - echo Making targets= ${MAKE_TARGETS}
