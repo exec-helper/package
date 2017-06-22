@@ -165,6 +165,13 @@ arch-linux-git:verify:
             - "*.deb"
             - "*.buildinfo"
 
+.dpkg:analyze: &dpkg_analyze
+    stage: analyze
+    script:
+        - apt-get update
+        - apt-get install --assume-yes lintian
+        - cd dpkg && lintian --fail-on-warnings
+
 dpkg:prepare:
     <<: *dpkg_prepare
     image: debian:testing
@@ -200,31 +207,19 @@ ubuntu-xenial:build:
         - ubuntu-xenial:prepare
 
 dpkg:analyze:
+    <<: *dpkg_analyze
     image: debian:testing
-    stage: analyze
     dependencies:
         - dpkg:build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
 
 debian-testing:analyze:
+    <<: *.dpkg_analyze
     image: debian:testing
-    stage: analyze
     dependencies:
         - debian-testing:build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
 
 ubuntu-xenial:analyze:
+    <<: *.dpkg_analyze
     image: ubuntu:xenial
-    stage: analyze
     dependencies:
         - ubuntu-xenial:build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
