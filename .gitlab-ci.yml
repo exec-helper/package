@@ -11,10 +11,13 @@ stages:
     - analyze
     - verify
 
+.enable_sudo_nobody: &enable_sudo_nobody
+        echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+
 .pkgbuild:prepare: &pkgbuild_prepare
     script:
         - pacman -S --noconfirm --needed make sed lsb-release sudo
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
@@ -27,7 +30,7 @@ stages:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script: 
         - pacman -S --noconfirm --needed base-devel sudo
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - *enable_sudo_nobody
         - cd pkgbuild/build
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
     artifacts:
