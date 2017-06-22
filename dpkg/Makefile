@@ -2,7 +2,7 @@ SOURCE_DIR=../exec-helper
 EXEC_HELPER_DEPS=exec-helper/CMakeLists.txt
 CHANGELOG_FILE=debian/changelog
 
-GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long 2>/dev/null || echo "UNKNOWN")
+GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || echo "UNKNOWN")
 MAJOR_VERSION=$(shell echo $(GIT_DESCRIBE) | sed "s/\(.*\)-.*-.*$$/\1/g" -)
 COMMIT=$(shell git -C $(SOURCE_DIR) log -n1 --format=%h)
 COMMIT_COUNT=$(shell git -C $(SOURCE_DIR) rev-list --count HEAD)
