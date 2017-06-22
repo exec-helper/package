@@ -1,7 +1,12 @@
+SOURCE_DIR=../exec-helper
 BUILD_DIR=build
 PKG_FILE=$(BUILD_DIR)/PKGBUILD
+
+GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long 2>/dev/null || echo "UNKNOWN")
+MAJOR_VERSION=$(shell echo $(GIT_DESCRIBE) | sed "s/\(.*\)-.*-.*$$/\1/g" -)
 COMMIT=$(shell git submodule | sed "s/[- ]\([0-9a-f]*\) .*$$/\1/g")
-VERSION=$(shell git describe 2>/dev/null || echo "UNKNOWN")
+COMMIT_COUNT=$(shell git -C $(SOURCE_DIR) rev-list --count HEAD)
+VERSION=$(MAJOR_VERSION)-$(COMMIT_COUNT)-git$(COMMIT)
 
 all: build
 
