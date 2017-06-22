@@ -51,13 +51,13 @@ stages:
 pkgbuild:prepare:
     stage: prepare
     variables:
-        MAKE_TARGETS: prepare
+        MAKE_TARGETS: pkgbuild TARGET=prepare
     <<: *pkgbuild_prepare
 
 arch-linux:prepare:
     stage: prepare
     variables:
-        MAKE_TARGETS: arch TARGET=prepare
+        MAKE_TARGETS: prepare
     only:
         - master
     <<: *pkgbuild_prepare
@@ -128,14 +128,30 @@ arch-linux-git:verify:
         - arch-linux-git:build
     <<: *pkgbuild_verify
 
-dpkg:build:
-    image: debian:testing
+.dpkg:prepare: &dpkg_prepare
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
+    script:
+        - apt-get install --assume-yes sudo make sed lsb-release
+        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - dpkg/*
+
+.dpkg:build: &dpkg_build
     stage: build
+    variables:
+        MAKE_TARGETS: build
     script:
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
         - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make dpkg
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
@@ -144,6 +160,40 @@ dpkg:build:
             - "*.changes"
             - "*.deb"
             - "*.buildinfo"
+
+dpkg:prepare:
+    <<: *dpkg_prepare
+    image: debian:testing
+    variables:
+        MAKE_TARGETS: dpkg TARGET=prepare
+
+debian-testing:prepare:
+    <<: *dpkg_prepare
+    image: debian:testing
+
+ubuntu-xenial:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:xenial
+
+dpkg:build:
+    <<: *dpkg_build
+    image: debian:testing
+    dependencies:
+        - dpkg:prepare
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build
+
+debian-testing:build:
+    <<: *dpkg_build
+    image: debian:testing
+    dependencies:
+        - debian-testing:prepare
+
+ubuntu-xenial:build:
+    <<: *dpkg_build
+    image: ubuntu:xenial
+    dependencies:
+        - ubuntu-xenial:prepare
 
 dpkg:analyze:
     image: debian:testing
@@ -155,23 +205,6 @@ dpkg:analyze:
         - apt-get install --assume-yes lintian
         - cd dpkg && lintian --fail-on-warnings
 
-debian-testing:build:
-    image: debian:testing
-    stage: build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - "*.dsc"
-            - "*.tar.*"
-            - "*.changes"
-            - "*.deb"
-            - "*.buildinfo"
-
 debian-testing:analyze:
     image: debian:testing
     stage: analyze
@@ -182,22 +215,6 @@ debian-testing:analyze:
         - apt-get install --assume-yes lintian
         - cd dpkg && lintian --fail-on-warnings
 
-ubuntu-xenial:build:
-    image: ubuntu:xenial
-    stage: build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - "*.dsc"
-            - "*.tar.*"
-            - "*.changes"
-            - "*.deb"
-
 ubuntu-xenial:analyze:
     image: ubuntu:xenial
     stage: analyze
@@ -207,4 +224,3 @@ ubuntu-xenial:analyze:
         - apt-get update
         - apt-get install --assume-yes lintian
         - cd dpkg && lintian --fail-on-warnings
-
