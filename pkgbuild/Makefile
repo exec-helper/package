@@ -6,7 +6,7 @@ GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long 2>/dev/null || echo "U
 MAJOR_VERSION=$(shell echo $(GIT_DESCRIBE) | sed "s/\(.*\)-.*-.*$$/\1/g" -)
 COMMIT=$(shell git submodule | sed "s/[- ]\([0-9a-f]*\) .*$$/\1/g")
 COMMIT_COUNT=$(shell git -C $(SOURCE_DIR) rev-list --count HEAD)
-VERSION=$(MAJOR_VERSION)-$(COMMIT_COUNT)-git$(COMMIT)
+VERSION=$(MAJOR_VERSION)_$(COMMIT_COUNT)_git$(COMMIT)
 
 all: build
 
