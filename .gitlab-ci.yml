@@ -213,13 +213,13 @@ dpkg:analyze:
         - dpkg:build
 
 debian-testing:analyze:
-    <<: *.dpkg_analyze
+    <<: *dpkg_analyze
     image: debian:testing
     dependencies:
         - debian-testing:build
 
 ubuntu-xenial:analyze:
-    <<: *.dpkg_analyze
+    <<: *dpkg_analyze
     image: ubuntu:xenial
     dependencies:
         - ubuntu-xenial:build
