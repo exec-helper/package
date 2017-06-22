@@ -170,7 +170,7 @@ arch-linux-git:verify:
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
+        - cd dpkg && lintian
 
 dpkg:prepare:
     <<: *dpkg_prepare
