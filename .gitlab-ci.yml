@@ -138,6 +138,7 @@ arch-linux-git:verify:
     script:
         - apt-get update
         - apt-get install --assume-yes sudo make sed lsb-release
+        - (cd exec-helper && git fetch --tags)
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
