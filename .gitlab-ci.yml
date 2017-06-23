@@ -14,6 +14,9 @@ stages:
 ############################################################################### PKGBUILD #############################################################
 
 .pkgbuild:prepare: &pkgbuild_prepare
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
     script:
         - pacman -S --noconfirm --needed make sed lsb-release sudo git
         - *enable_sudo_nobody
@@ -25,6 +28,7 @@ stages:
             - pkgbuild/build/*
 
 .pkgbuild:build: &pkgbuild_build
+    stage: build
     script: 
         - pacman -S --noconfirm --needed base-devel sudo lsb-release
         - *enable_sudo_nobody
@@ -37,6 +41,7 @@ stages:
             - pkgbuild/build/*.tar.xz
 
 .pkgbuild:analyze: &pkgbuild_analyze
+    stage: analyze
     variables:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
@@ -46,6 +51,7 @@ stages:
         - namcap build/*.tar.xz
 
 .pkgbuild:verify: &pkgbuild_verify
+    stage: verify
     script:
         - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
@@ -60,16 +66,12 @@ pkgbuild:prepare:
 arch-linux:prepare:
     <<: *pkgbuild_prepare
     image: dock0/arch
-    variables:
-        MAKE_TARGETS: prepare
     only:
         - master
 
 arch-linux-git:prepare:
     <<: *pkgbuild_prepare
     image: dock0/arch
-    variables:
-        MAKE_TARGETS: arch TARGET=prepare-git
 
 pkgbuild:build:
     <<: *pkgbuild_build
