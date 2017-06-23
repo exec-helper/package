@@ -170,6 +170,15 @@ arch-linux-git:verify:
         - apt-get install --assume-yes lintian
         - cd dpkg && lintian
 
+.dpkg:verify: &dpkg_verify
+    stage: verify
+    script:
+        - dpkg -i *.deb
+        - apt-get --yes install -f
+        - dpkg -i *.deb
+        - apt-get --yes install gcc clang make scons clang-tools-extra cppcheck git valgrind
+        - verification/run-examples.sh
+
 dpkg:prepare:
     <<: *dpkg_prepare
     image: debian:testing
@@ -218,6 +227,24 @@ debian-testing:analyze:
 
 ubuntu-xenial:analyze:
     <<: *dpkg_analyze
+    image: ubuntu:xenial
+    dependencies:
+        - ubuntu-xenial:build
+
+dpkg:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    dependencies:
+        - dpkg:build
+
+debian-testing:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    dependencies:
+        - debian-testing:build
+
+ubuntu-xenial:verify:
+    <<: *dpkg_verify
     image: ubuntu:xenial
     dependencies:
         - ubuntu-xenial:build
