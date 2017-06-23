@@ -11,6 +11,8 @@ stages:
 .enable_sudo_nobody: &enable_sudo_nobody
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
 
+############################################################################### PKGBUILD #############################################################
+
 .pkgbuild:prepare: &pkgbuild_prepare
     script:
         - pacman -S --noconfirm --needed make sed lsb-release sudo git
@@ -50,84 +52,86 @@ stages:
         - verification/run-examples.sh
 
 pkgbuild:prepare:
-    stage: prepare
+    <<: *pkgbuild_prepare
+    image: dock0/arch
     variables:
         MAKE_TARGETS: pkgbuild TARGET=prepare
-    <<: *pkgbuild_prepare
 
 arch-linux:prepare:
-    stage: prepare
+    <<: *pkgbuild_prepare
+    image: dock0/arch
     variables:
         MAKE_TARGETS: prepare
     only:
         - master
-    <<: *pkgbuild_prepare
 
 arch-linux-git:prepare:
-    stage: prepare
+    <<: *pkgbuild_prepare
+    image: dock0/arch
     variables:
         MAKE_TARGETS: arch TARGET=prepare-git
-    <<: *pkgbuild_prepare
 
 pkgbuild:build:
-    stage: build
+    <<: *pkgbuild_build
+    image: dock0/arch
     dependencies:
         - pkgbuild:prepare
-    <<: *pkgbuild_build
 
 arch-linux:build:
-    stage: build
+    <<: *pkgbuild_build
+    image: dock0/arch
     dependencies:
         - arch-linux:prepare
     only:
         - master
-    <<: *pkgbuild_build
 
 arch-linux-git:build:
-    stage: build
+    <<: *pkgbuild_build
+    image: dock0/arch
     dependencies:
         - arch-linux-git:prepare
-    <<: *pkgbuild_build
 
 pkgbuild:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
         - pkgbuild:build
-    <<: *pkgbuild_analyze
 
 arch-linux:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
         - arch-linux:build
     only:
         - master
-    <<: *pkgbuild_analyze
 
 arch-linux-git:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
         - arch-linux-git:build
-    <<: *pkgbuild_analyze
 
 pkgbuild:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - pkgbuild:build
-    <<: *pkgbuild_verify
 
 arch-linux:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - arch-linux:build
     only:
         - master
-    <<: *pkgbuild_verify
 
 arch-linux-git:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - arch-linux-git:build
-    <<: *pkgbuild_verify
+
+############################################################################### dpkg  #############################################################
 
 .dpkg:prepare: &dpkg_prepare
     stage: prepare
