@@ -180,7 +180,7 @@ arch-linux-git:verify:
     stage: verify
     script:
         - apt-get update
-        - apt-get --yes install gcc clang make scons clang-tools-extra cppcheck git valgrind gdebi
+        - apt-get --yes install gcc clang make scons clang-tidy cppcheck git valgrind gdebi
         - gdebi *.deb
         - verification/run-examples.sh
 
