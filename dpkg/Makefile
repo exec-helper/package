@@ -10,7 +10,7 @@ DISTRIBUTION=$(shell lsb_release --codename --short)
 
 VERSION=$(MAJOR_VERSION)-$(COMMIT_COUNT)-git$(COMMIT)
 
-all: dpkg
+all: build
 
 $(EXEC_HELPER_DEPS):
 	cp -r ../exec-helper .
