@@ -2,7 +2,7 @@ SOURCE_DIR=../exec-helper
 EXEC_HELPER_DEPS=exec-helper/CMakeLists.txt
 CHANGELOG_FILE=debian/changelog
 
-GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long 2>/dev/null || echo "UNKNOWN")
+GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || echo "UNKNOWN")
 MAJOR_VERSION=$(shell echo $(GIT_DESCRIBE) | sed "s/\(.*\)-.*-.*$$/\1/g" -)
 COMMIT=$(shell git -C $(SOURCE_DIR) log -n1 --format=%h)
 COMMIT_COUNT=$(shell git -C $(SOURCE_DIR) rev-list --count HEAD)
@@ -10,7 +10,7 @@ DISTRIBUTION=$(shell lsb_release --codename --short)
 
 VERSION=$(MAJOR_VERSION)-$(COMMIT_COUNT)-git$(COMMIT)
 
-all: dpkg
+all: build
 
 $(EXEC_HELPER_DEPS):
 	cp -r ../exec-helper .
@@ -26,7 +26,9 @@ write-changelog: $(CHANGELOG_FILE)
 check-build-deps:
 	yes | sudo mk-build-deps -i
 
-dpkg:: $(EXEC_HELPER_DEPS) write-changelog check-build-deps
+prepare: write-changelog
+
+build:: $(EXEC_HELPER_DEPS) prepare check-build-deps
 	dpkg-buildpackage -jauto -us -uc
 
 clean:

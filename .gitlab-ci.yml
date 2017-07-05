@@ -2,19 +2,24 @@ image: dock0/arch
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
-before_script:
-    - pacman -Sy --noconfirm
-
 stages:
     - prepare
     - build
     - analyze
     - verify
 
+.enable_sudo_nobody: &enable_sudo_nobody
+        echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+
+############################################################################### PKGBUILD #############################################################
+
 .pkgbuild:prepare: &pkgbuild_prepare
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
     script:
-        - pacman -S --noconfirm --needed make sed lsb-release sudo
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - pacman -S --noconfirm --needed make sed lsb-release sudo git
+        - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
@@ -23,9 +28,10 @@ stages:
             - pkgbuild/build/*
 
 .pkgbuild:build: &pkgbuild_build
+    stage: build
     script: 
-        - pacman -S --noconfirm --needed base-devel lsb-release sudo
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+        - pacman -S --noconfirm --needed base-devel sudo lsb-release
+        - *enable_sudo_nobody
         - cd pkgbuild/build
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
     artifacts:
@@ -35,110 +41,125 @@ stages:
             - pkgbuild/build/*.tar.xz
 
 .pkgbuild:analyze: &pkgbuild_analyze
+    stage: analyze
     variables:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
-        - pacman -S --noconfirm --needed namcap
+        - pacman -Sy --noconfirm --needed namcap
         - cd pkgbuild
         - namcap build/PKGBUILD
         - namcap build/*.tar.xz
 
 .pkgbuild:verify: &pkgbuild_verify
-    variables:
-        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
+    stage: verify
     script:
         - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
-        - pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - verification/run-examples.sh
 
 pkgbuild:prepare:
-    stage: prepare
-    variables:
-        MAKE_TARGETS: prepare
     <<: *pkgbuild_prepare
+    image: dock0/arch
+    variables:
+        MAKE_TARGETS: pkgbuild TARGET=prepare
 
 arch-linux:prepare:
-    stage: prepare
-    variables:
-        MAKE_TARGETS: arch TARGET=prepare
+    <<: *pkgbuild_prepare
+    image: dock0/arch
     only:
         - master
-    <<: *pkgbuild_prepare
 
 arch-linux-git:prepare:
-    stage: prepare
-    variables:
-        MAKE_TARGETS: arch TARGET=prepare-git
     <<: *pkgbuild_prepare
+    image: dock0/arch
 
 pkgbuild:build:
-    stage: build
+    <<: *pkgbuild_build
+    image: dock0/arch
     dependencies:
         - pkgbuild:prepare
-    <<: *pkgbuild_build
 
 arch-linux:build:
-    stage: build
+    <<: *pkgbuild_build
+    image: dock0/arch
     dependencies:
         - arch-linux:prepare
     only:
         - master
-    <<: *pkgbuild_build
 
 arch-linux-git:build:
-    stage: build
+    <<: *pkgbuild_build
+    image: dock0/arch
     dependencies:
         - arch-linux-git:prepare
-    <<: *pkgbuild_build
 
 pkgbuild:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
         - pkgbuild:build
-    <<: *pkgbuild_analyze
 
 arch-linux:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
         - arch-linux:build
     only:
         - master
-    <<: *pkgbuild_analyze
 
 arch-linux-git:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
         - arch-linux-git:build
-    <<: *pkgbuild_analyze
 
 pkgbuild:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - pkgbuild:build
-    <<: *pkgbuild_verify
 
 arch-linux:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - arch-linux:build
     only:
         - master
-    <<: *pkgbuild_verify
 
 arch-linux-git:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - arch-linux-git:build
-    <<: *pkgbuild_verify
 
-dpkg:build:
-    image: debian:testing
+############################################################################### dpkg  #############################################################
+
+.dpkg:prepare: &dpkg_prepare
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
+    script:
+        - apt-get update
+        - apt-get install --assume-yes sudo make sed lsb-release git
+        - *enable_sudo_nobody
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - dpkg/*
+
+.dpkg:build: &dpkg_build
     stage: build
+    variables:
+        MAKE_TARGETS: build
     script:
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make dpkg
+        - *enable_sudo_nobody
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
@@ -148,66 +169,88 @@ dpkg:build:
             - "*.deb"
             - "*.buildinfo"
 
-dpkg:analyze:
-    image: debian:testing
+.dpkg:analyze: &dpkg_analyze
     stage: analyze
-    dependencies:
-        - dpkg:build
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
+        - cd dpkg && lintian
+
+.dpkg:verify: &dpkg_verify
+    stage: verify
+    script:
+        - cp *.deb /var/cache/apt/archives/
+        - apt-get update
+        - apt-get install exec-helper exec-helper-docs
+        - apt-get --yes install gcc clang make scons clang-tidy cppcheck git valgrind gdebi
+        - verification/run-examples.sh
+
+dpkg:prepare:
+    <<: *dpkg_prepare
+    image: debian:testing
+    variables:
+        MAKE_TARGETS: dpkg TARGET=prepare
+
+debian-testing:prepare:
+    <<: *dpkg_prepare
+    image: debian:testing
+
+ubuntu-xenial:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:xenial
+
+dpkg:build:
+    <<: *dpkg_build
+    image: debian:testing
+    dependencies:
+        - dpkg:prepare
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build
 
 debian-testing:build:
+    <<: *dpkg_build
     image: debian:testing
-    stage: build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - "*.dsc"
-            - "*.tar.*"
-            - "*.changes"
-            - "*.deb"
-            - "*.buildinfo"
-
-debian-testing:analyze:
-    image: debian:testing
-    stage: analyze
     dependencies:
-        - debian-testing:build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
+        - debian-testing:prepare
 
 ubuntu-xenial:build:
+    <<: *dpkg_build
     image: ubuntu:xenial
-    stage: build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo lsb-release
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - sudo -u nobody make
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - "*.dsc"
-            - "*.tar.*"
-            - "*.changes"
-            - "*.deb"
+    dependencies:
+        - ubuntu-xenial:prepare
+
+dpkg:analyze:
+    <<: *dpkg_analyze
+    image: debian:testing
+    dependencies:
+        - dpkg:build
+
+debian-testing:analyze:
+    <<: *dpkg_analyze
+    image: debian:testing
+    dependencies:
+        - debian-testing:build
 
 ubuntu-xenial:analyze:
+    <<: *dpkg_analyze
     image: ubuntu:xenial
-    stage: analyze
     dependencies:
         - ubuntu-xenial:build
-    script:
-        - apt-get update
-        - apt-get install --assume-yes lintian
-        - cd dpkg && lintian --fail-on-warnings
 
+dpkg:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    dependencies:
+        - dpkg:build
+
+debian-testing:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    dependencies:
+        - debian-testing:build
+
+ubuntu-xenial:verify:
+    <<: *dpkg_verify
+    image: ubuntu:xenial
+    dependencies:
+        - ubuntu-xenial:build
