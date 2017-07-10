@@ -174,7 +174,10 @@ arch-linux-git:verify:
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
-        - cd dpkg && lintian
+        - ls
+        - cd dpkg
+        - ls
+        - lintian
 
 .dpkg:verify: &dpkg_verify
     stage: verify
