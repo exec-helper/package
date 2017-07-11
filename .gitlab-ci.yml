@@ -226,18 +226,21 @@ dpkg:analyze:
     <<: *dpkg_analyze
     image: debian:testing
     dependencies:
+        - dpkg:prepare
         - dpkg:build
 
 debian-testing:analyze:
     <<: *dpkg_analyze
     image: debian:testing
     dependencies:
+        - debian-testing:prepare
         - debian-testing:build
 
 ubuntu-xenial:analyze:
     <<: *dpkg_analyze
     image: ubuntu:xenial
     dependencies:
+        - ubuntu-xenial:prepare
         - ubuntu-xenial:build
 
 dpkg:verify:
