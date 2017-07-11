@@ -171,6 +171,7 @@ arch-linux-git:verify:
 
 .dpkg:analyze: &dpkg_analyze
     stage: analyze
+    variables:
         LINTIAN_ARGS: "--no-cfg"
     script:
         - apt-get update
@@ -238,7 +239,7 @@ debian-testing:analyze:
 ubuntu-xenial:analyze:
     <<: *dpkg_analyze
     image: ubuntu:xenial
-    stage: analyze
+    variables:
         LINTIAN_ARGS: "--fail-on-warnings"
     dependencies:
         - ubuntu-xenial:prepare
