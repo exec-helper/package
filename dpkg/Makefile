@@ -6,7 +6,7 @@ CHANGELOG_IN:=$(CHANGELOG_FILE).in
 CHANGELOG_TEMP_TEMPLATE:=$(CHANGELOG_FILE).tmp
 CHANGELOG_TEMP:=$(shell mktemp --dry-run $(CHANGELOG_TEMP_TEMPLATE).XXX)
 
-VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:%h)
+VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
 all: build
