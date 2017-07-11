@@ -141,7 +141,7 @@ arch-linux-git:verify:
         MAKE_TARGETS: prepare
     script:
         - apt-get update
-        - apt-get install --assume-yes sudo make sed lsb-release git
+        - apt-get install --assume-yes sudo make sed lsb-release git gcc
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}

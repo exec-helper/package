@@ -25,7 +25,7 @@ SOURCE_FILES:=CMakeLists.txt
 BUILD_DEPS_PACKAGE:=$(PROJECT_NAME)-build-deps_$(VERSION)_all.deb
 
 # Determine the target architecture
-ARCHITECTURE:=$(shell gcc -dumpmachine | cut -d'-' -f1)
+ARCHITECTURE:=$(shell $(CC) -dumpmachine | cut -d'-' -f1)
 ifeq ($(ARCHITECTURE),x86_64)
 ARCHITECTURE:=amd64
 endif
