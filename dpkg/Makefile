@@ -1,32 +1,30 @@
 SOURCE_DIR=../exec-helper
 EXEC_HELPER_DEPS=exec-helper/CMakeLists.txt
+
 CHANGELOG_FILE=debian/changelog
+CHANGELOG_IN:=$(CHANGELOG_FILE).in
+CHANGELOG_TEMP_TEMPLATE:=$(CHANGELOG_FILE).tmp
+CHANGELOG_TEMP:=$(shell mktemp --dry-run $(CHANGELOG_TEMP_TEMPLATE).XXX)
 
-GIT_DESCRIBE=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || echo "UNKNOWN")
-MAJOR_VERSION=$(shell echo $(GIT_DESCRIBE) | sed "s/\(.*\)-.*-.*$$/\1/g" -)
-COMMIT=$(shell git -C $(SOURCE_DIR) log -n1 --format=%h)
-COMMIT_COUNT=$(shell git -C $(SOURCE_DIR) rev-list --count HEAD)
-DISTRIBUTION=$(shell lsb_release --codename --short)
-
-VERSION=$(MAJOR_VERSION)-$(COMMIT_COUNT)-git$(COMMIT)
+VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:%h)
+DISTRIBUTION:=$(shell lsb_release --codename --short)
 
 all: build
 
 $(EXEC_HELPER_DEPS):
 	cp -r ../exec-helper .
 
-$(CHANGELOG_FILE):
-	cp debian/changelog.in $(CHANGELOG_FILE)
-
-write-changelog: $(CHANGELOG_FILE)
-	sed -i "s/@VERSION@/$(VERSION)/g" $(CHANGELOG_FILE)
-	sed -i "s/@PACKAGE@/exec-helper/g" $(CHANGELOG_FILE)
-	sed -i "s/@DISTRIBUTION@/$(DISTRIBUTION)/g" $(CHANGELOG_FILE)
+$(CHANGELOG_FILE): $(CHANGELOG_IN)
+	cp $(CHANGELOG_IN) $(CHANGELOG_TEMP)
+	sed -i "s/@VERSION@/$(VERSION)/g" $(CHANGELOG_TEMP)
+	sed -i "s/@PACKAGE@/exec-helper/g" $(CHANGELOG_TEMP)
+	sed -i "s/@DISTRIBUTION@/$(DISTRIBUTION)/g" $(CHANGELOG_TEMP)
+	mv $(CHANGELOG_TEMP) $(CHANGELOG_FILE)
 
 check-build-deps:
 	yes | sudo mk-build-deps -i
 
-prepare: write-changelog
+prepare: $(CHANGELOG_FILE)
 
 build:: $(EXEC_HELPER_DEPS) prepare check-build-deps
 	dpkg-buildpackage -jauto -us -uc
@@ -35,6 +33,7 @@ clean:
 	$(MAKE) -f debian/rules clean || true
 	rm -f $(EXEC_HELPER_DEPS)
 	rm -f $(CHANGELOG_FILE)
+	rm -f $(CHANGELOG_TEMP_TEMPLATE)*
 	rm -f ../exec-helper*.dsc
 	rm -f ../exec-helper*.tar.gz
 	rm -f ../exec-helper*.changes
