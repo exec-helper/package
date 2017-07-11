@@ -171,13 +171,12 @@ arch-linux-git:verify:
 
 .dpkg:analyze: &dpkg_analyze
     stage: analyze
+        LINTIAN_ARGS: "--no-cfg"
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
-        - ls
         - cd dpkg
-        - ls
-        - lintian
+        - lintian ${LINTIAN_ARGS} --allow-root
 
 .dpkg:verify: &dpkg_verify
     stage: verify
@@ -239,6 +238,8 @@ debian-testing:analyze:
 ubuntu-xenial:analyze:
     <<: *dpkg_analyze
     image: ubuntu:xenial
+    stage: analyze
+        LINTIAN_ARGS: "--fail-on-warnings"
     dependencies:
         - ubuntu-xenial:prepare
         - ubuntu-xenial:build
