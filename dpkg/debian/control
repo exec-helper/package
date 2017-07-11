@@ -10,7 +10,7 @@ Build-Depends:
     doxygen,
     git,
     lsb-release
-Standards-Version: 3.9.8
+Standards-Version: 4.0.0
 Homepage: https://github.com/bverhagen/exec-helper
 Vcs-Browser: https://github.com/bverhagen/exec-helper
 Vcs-Git: https://github.com/bverhagen/exec-helper.git
