@@ -13,7 +13,7 @@ CHANGELOG_TEMP:=$(shell mktemp --dry-run $(CHANGELOG_TEMP_TEMPLATE).XXX)
 
 VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
 DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
-DISTRIBUTION:=ubuntu
+DISTRIBUTION:=$(shell lsb_release --codename --short)
 
 DEBIAN_ARCHIVE:=debian.tar.xz
 SOURCE_ARCHIVE:=$(PROJECT_NAME)_$(DPKG_VERSION).orig.tar.xz
