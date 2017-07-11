@@ -1,2 +1,5 @@
+# Not using quilt yet
 native-package-with-dash-version
+
+# Older systems may be behind on the standards-version
 newer-standards-version
