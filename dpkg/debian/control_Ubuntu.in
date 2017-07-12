@@ -1,0 +1,49 @@
+Source: exec-helper
+Maintainer: bverhagen <barrie.verhagen@gmail.com>
+Section: misc
+Priority: optional
+Build-Depends: 
+    debhelper (>= 9),
+    cmake,
+    libboost-program-options-dev,
+#    libyaml-cpp-dev,
+    doxygen,
+    git,
+    lsb-release,
+    pkg-create-dbgsym
+Standards-Version: 4.0.0
+Homepage: https://github.com/bverhagen/exec-helper
+Vcs-Browser: https://github.com/bverhagen/exec-helper
+Vcs-Git: https://github.com/bverhagen/exec-helper.git
+
+Package: exec-helper
+Architecture: any
+Section: misc
+Priority: optional
+Depends:
+    ${shlibs:Depends},
+    ${misc:Depends}
+Description: How To Get Coffee In Peace: a shell meta-wrapper
+ This package provides the exec-helper binaries and the man-page documentation.
+Homepage: https://github.com/bverhagen/exec-helper
+Built-using: libyaml-cpp-dev
+
+Package: exec-helper-docs
+Architecture: all
+Section: doc
+Priority: optional
+Depends:
+    ${misc:Depends}
+Description: HTML API documentation for exec-helper
+ This package provides the API documentation for exec-helper in HTML format.
+Homepage: https://github.com/bverhagen/exec-helper
+
+Package: exec-helper-dbgsym
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    exec-helper (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for exec-helper
+ This package contains the debugging symbols for exec-helper.

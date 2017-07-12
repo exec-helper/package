@@ -4,6 +4,11 @@ SOURCE_DIR:=../$(PROJECT_NAME)
 SOURCE_FILES:=CMakeLists.txt
 SOURCES:=$(SOURCE_DIR)/$(SOURCE_FILES)
 
+VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
+DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
+VENDOR:=$(shell lsb_release --id --short)
+DISTRIBUTION:=$(shell lsb_release --codename --short)
+
 BUILD_DIR=dpkg_build
 
 CHANGELOG_FILE=debian/changelog
@@ -11,9 +16,13 @@ CHANGELOG_IN:=$(CHANGELOG_FILE).in
 CHANGELOG_TEMP_TEMPLATE:=$(CHANGELOG_FILE).tmp
 CHANGELOG_TEMP:=$(shell mktemp --dry-run $(CHANGELOG_TEMP_TEMPLATE).XXX)
 
-VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
-DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
-DISTRIBUTION:=$(shell lsb_release --codename --short)
+CONTROL_FILE:=debian/control
+CONTROL_IN:=debian/control_$(VENDOR).in
+
+RULES_FILE:=debian/rules
+RULES_IN:=debian/rules.in
+RULES_TEMP_TEMPLATE:=$(RULES_FILE).tmp
+RULES_TEMP:=$(shell mktemp --dry-run $(RULES_TEMP_TEMPLATE).XXX)
 
 DEBIAN_ARCHIVE:=debian.tar.xz
 SOURCE_ARCHIVE:=$(PROJECT_NAME)_$(DPKG_VERSION).orig.tar.xz
@@ -50,8 +59,20 @@ $(CHANGELOG_FILE): $(CHANGELOG_IN)
 	sed -i "s/@DISTRIBUTION@/$(DISTRIBUTION)/g" $(CHANGELOG_TEMP)
 	mv $(CHANGELOG_TEMP) $(CHANGELOG_FILE)
 
-$(DEBIAN_ARCHIVE): $(CHANGELOG_FILE)
-	tar -c -af $(DEBIAN_ARCHIVE) debian
+$(CONTROL_FILE) : $(CONTROL_IN)
+	cp $(CONTROL_IN) $(CONTROL_FILE)
+
+$(RULES_FILE): $(RULES_IN)
+	cp $(RULES_IN) $(RULES_TEMP)
+ifeq ($(VENDOR),Ubuntu)
+	echo "" >> $(RULES_TEMP)
+	echo "override_dh_strip:" >> $(RULES_TEMP)
+	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(RULES_TEMP)
+endif
+	mv $(RULES_TEMP) $(RULES_FILE)
+
+$(DEBIAN_ARCHIVE): $(CONTROL_FILE) $(CHANGELOG_FILE) $(RULES_FILE)
+	tar -c --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af $(DEBIAN_ARCHIVE) debian
 
 $(SOURCE_ARCHIVE): $(SOURCE_DIR)/$(SOURCES)
 	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
@@ -88,7 +109,9 @@ build:: deploy-archives install-build-deps
 	test -f $(BUILD_INFO_FILE) && cp $(BUILD_INFO_FILE) $(PACKAGE_DIR)/ || true
 
 clean:
+	rm -f $(CONTROL_FILE)
 	rm -f $(CHANGELOG_FILE)
+	rm -f $(RULES_FILE)
 	rm -f $(CHANGELOG_TEMP_TEMPLATE)*
 	rm -f $(DEBIAN_ARCHIVE)
 	rm -f $(SOURCE_ARCHIVE)
