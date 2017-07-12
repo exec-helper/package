@@ -36,3 +36,13 @@ Depends:
 Description: HTML API documentation for exec-helper
  This package provides the API documentation for exec-helper in HTML format.
 Homepage: https://github.com/bverhagen/exec-helper
+
+Package: exec-helper-dbgsym
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    exec-helper (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for exec-helper
+ This package contains the debugging symbols for the exec-helper package.
