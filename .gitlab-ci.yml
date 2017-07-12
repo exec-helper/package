@@ -157,7 +157,7 @@ arch-linux-git:verify:
         MAKE_TARGETS: build
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
