@@ -36,7 +36,8 @@ PACKAGES = 	$(PROJECT_NAME)_$(VERSION).dsc \
 			$(SOURCE_ARCHIVE) \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).deb \
-			$(PROJECT_NAME)-docs_$(VERSION)_all.deb 
+			$(PROJECT_NAME)-docs_$(VERSION)_all.deb \
+			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
 
 BUILD_INFO_FILE=$(PROJECT_NAME)_$(VERSION)*.buildinfo
 

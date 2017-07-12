@@ -155,9 +155,10 @@ arch-linux-git:verify:
     stage: build
     variables:
         MAKE_TARGETS: build
+        ADDITIONAL_BUILD_DEPENDENCIES: ~
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
@@ -214,6 +215,8 @@ debian-testing:build:
         - debian-testing:prepare
 
 ubuntu-xenial:build:
+    variables:
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build
     image: ubuntu:xenial
     dependencies:
