@@ -170,12 +170,16 @@ arch-linux-git:verify:
 .dpkg:analyze: &dpkg_analyze
     stage: analyze
     variables:
+        SEQUENCE_NAME: "UNKNOWN"
         LINTIAN_ARGS: "--no-cfg"
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
         - cd dpkg/package
         - lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb
+    dependencies:
+        - ${SEQUENCE_NAME}:prepare
+        - ${SEQUENCE_NAME}:build
 
 .dpkg:verify: &dpkg_verify
     stage: verify
@@ -235,32 +239,28 @@ ubuntu-rolling:build:
 dpkg:analyze:
     <<: *dpkg_analyze
     image: debian:testing
-    dependencies:
-        - dpkg:prepare
-        - dpkg:build
+    variables:
+        SEQUENCE_NAME: dpkg
 
 debian-testing:analyze:
     <<: *dpkg_analyze
     image: debian:testing
-    dependencies:
-        - debian-testing:prepare
-        - debian-testing:build
+    variables:
+        SEQUENCE_NAME: debian-testing
 
 ubuntu-xenial:analyze:
     <<: *dpkg_analyze
     image: ubuntu:xenial
     variables:
         LINTIAN_ARGS: "--fail-on-warnings"
-    dependencies:
-        - ubuntu-xenial:prepare
-        - ubuntu-xenial:build
+    variables:
+        SEQUENCE_NAME: ubuntu-xenial
 
 ubuntu-rolling:analyze:
     <<: *dpkg_analyze
     image: ubuntu:rolling
-    dependencies:
-        - ubuntu-rolling:prepare
-        - ubuntu-rolling:build
+    variables:
+        SEQUENCE_NAME: ubuntu-rolling
 
 dpkg:verify:
     <<: *dpkg_verify
