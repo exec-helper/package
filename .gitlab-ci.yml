@@ -200,6 +200,10 @@ ubuntu-xenial:prepare:
     <<: *dpkg_prepare
     image: ubuntu:xenial
 
+ubuntu-rolling:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:rolling
+
 dpkg:build:
     <<: *dpkg_build
     image: debian:testing
@@ -221,6 +225,12 @@ ubuntu-xenial:build:
     image: ubuntu:xenial
     dependencies:
         - ubuntu-xenial:prepare
+
+ubuntu-rolling:build:
+    <<: *dpkg_build
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:prepare
 
 dpkg:analyze:
     <<: *dpkg_analyze
@@ -245,6 +255,13 @@ ubuntu-xenial:analyze:
         - ubuntu-xenial:prepare
         - ubuntu-xenial:build
 
+ubuntu-rolling:analyze:
+    <<: *dpkg_analyze
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:prepare
+        - ubuntu-rolling:build
+
 dpkg:verify:
     <<: *dpkg_verify
     image: debian:testing
@@ -262,3 +279,9 @@ ubuntu-xenial:verify:
     image: ubuntu:xenial
     dependencies:
         - ubuntu-xenial:build
+
+ubuntu-rolling:verify:
+    <<: *dpkg_verify
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:build
