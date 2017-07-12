@@ -155,7 +155,7 @@ arch-linux-git:verify:
     stage: build
     variables:
         MAKE_TARGETS: build
-        ADDITIONAL_BUILD_DEPENDENCIES: ~
+        ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed ${ADDITIONAL_BUILD_DEPENDENCIES}
