@@ -26,7 +26,6 @@ Depends:
 Description: How To Get Coffee In Peace: a shell meta-wrapper
  This package provides the exec-helper binaries and the man-page documentation.
 Homepage: https://github.com/bverhagen/exec-helper
-Built-using: libyaml-cpp-dev
 
 Package: exec-helper-docs
 Architecture: all
