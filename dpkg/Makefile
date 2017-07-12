@@ -70,8 +70,9 @@ $(BUILD_DIR)/$(SOURCE_FILES): $(BUILD_DIR) $(SOURCE_ARCHIVE)
 deploy-archives:: $(BUILD_DIR)/$(DEBIAN_FILES) $(BUILD_DIR)/$(SOURCE_FILES)
 
 $(BUILD_DEPS_PACKAGE): $(BUILD_DIR)/$(DEBIAN_FILES)
-	cd $(BUILD_DIR) && yes | sudo mk-build-deps -i
-	mv $(BUILD_DIR)/$(BUILD_DEPS_PACKAGE) $(BUILD_DEPS_PACKAGE)
+	cd $(BUILD_DIR) && yes | sudo mk-build-deps --install --remove
+	# Fake the package so we know that the build dependencies have been installed
+	touch $(BUILD_DEPS_PACKAGE)
 
 install-build-deps: $(BUILD_DEPS_PACKAGE)
 
