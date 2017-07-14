@@ -184,7 +184,7 @@ arch-linux-git:verify:
         - dpkg -i dpkg/package/*.deb || true
         - apt --fix-broken --yes install
         - dpkg -i dpkg/package/*.deb
-        - apt-get --yes install gcc clang make scons clang-tidy cppcheck git valgrind
+        - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
         - verification/run-examples.sh
 
 dpkg:prepare:
