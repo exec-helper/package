@@ -180,9 +180,10 @@ arch-linux-git:verify:
 .dpkg:verify: &dpkg_verify
     stage: verify
     script:
-        - cp dpkg/package/*.deb /var/cache/apt/archives/
         - apt-get update
-        - apt-get install exec-helper exec-helper-docs
+        - dpkg -i dpkg/package/*.deb || true
+        - apt --fix-broken --yes install
+        - dpkg -i dpkg/package/*.deb
         - apt-get --yes install gcc clang make scons clang-tidy cppcheck git valgrind
         - verification/run-examples.sh
 
