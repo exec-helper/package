@@ -12,13 +12,15 @@ GIT_DESCRIBE:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/de
 VERSION:=$(subst -,_,$(GIT_DESCRIBE))
 COMMIT:=$(shell git -C $(SOURCE_DIR) log -n1 --pretty=format:%H)
 
+CURDIR:=$(shell pwd)
+
 all: build
 
 prepare-build-dir:
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/$(CHANGELOG): prepare-build-dir
-	cd $(SOURCE_DIR) && GITCHANGELOG_CONFIG_FILENAME=$(pwd)/../gitchangelog.rc gitchangelog > $(pwd)/$(BUILD_DIR)/$(CHANGELOG)
+	cd $(SOURCE_DIR) && GITCHANGELOG_CONFIG_FILENAME=$(CURDIR)/../gitchangelog.rc gitchangelog > $(CURDIR)/$(BUILD_DIR)/$(CHANGELOG)
 
 $(BUILD_DIR)/$(PKG_FILE): prepare-build-dir $(PKG_IN)
 	cp $(PKG_IN) $(PKG_TEMP)
