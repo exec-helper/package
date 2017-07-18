@@ -1,5 +1,0 @@
-exec-helper (0.1.0-9-gecf7239) yakkety; urgency=low
-
-  * Check /usr/share/doc/exec-helper/NEWS.Debian.gz for the actual changelog
-
- -- bverhagen <barrie.verhagen@gmail.com>  Tue, 30 May 2017 20:44:31 +0100
