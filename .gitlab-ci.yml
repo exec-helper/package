@@ -160,7 +160,8 @@ arch-linux-git:verify:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - pip install gitchangelog
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
