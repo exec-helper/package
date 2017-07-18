@@ -18,7 +18,8 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - pacman -S --noconfirm --needed make sed lsb-release sudo git
+        - pacman -S --noconfirm --needed make sed lsb-release sudo git python-pip
+        - pip install gitchangelog
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
