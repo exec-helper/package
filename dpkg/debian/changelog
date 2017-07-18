@@ -1,4 +1,4 @@
-@PACKAGE@ (@VERSION@) @DISTRIBUTION@; urgency=low
+exec-helper (0.1.0-9-gecf7239) yakkety; urgency=low
 
   * Check /usr/share/doc/exec-helper/NEWS.Debian.gz for the actual changelog
 
