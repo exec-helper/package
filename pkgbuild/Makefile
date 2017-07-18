@@ -18,7 +18,7 @@ prepare-build-dir:
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/$(CHANGELOG): prepare-build-dir
-	cd $(SOURCE_DIR) && GITCHANGELOG_CONFIG_FILENAME=${PWD}/../gitchangelog.rc gitchangelog > ${PWD}/$(BUILD_DIR)/$(CHANGELOG)
+	cd $(SOURCE_DIR) && GITCHANGELOG_CONFIG_FILENAME=$(pwd)/../gitchangelog.rc gitchangelog > $(pwd)/$(BUILD_DIR)/$(CHANGELOG)
 
 $(BUILD_DIR)/$(PKG_FILE): prepare-build-dir $(PKG_IN)
 	cp $(PKG_IN) $(PKG_TEMP)
