@@ -21,6 +21,6 @@ ${indent(commit["body"])}
 <%! import datetime %>
 <%
 _date = datetime.datetime.strptime(version["date"], '%Y-%m-%d').strftime('%a, %d %b %Y %H:%M:%S +0000')
-%> -- @AUTHOR@ <@AUTHORMAIL@> ${_date}
+%> -- @AUTHOR@ <@AUTHOR_EMAIL@>  ${_date}
 
 % endfor
