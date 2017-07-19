@@ -5,7 +5,6 @@ variables:
 stages:
     - prepare
     - build
-    - analyze
     - verify
 
 .enable_sudo_nobody: &enable_sudo_nobody
@@ -42,7 +41,7 @@ stages:
             - pkgbuild/build/*.tar.xz
 
 .pkgbuild:analyze: &pkgbuild_analyze
-    stage: analyze
+    stage: verify
     variables:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
     script:
@@ -171,7 +170,7 @@ arch-linux-git:verify:
             - "dpkg/package/*"
 
 .dpkg:analyze: &dpkg_analyze
-    stage: analyze
+    stage: verify
     variables:
         LINTIAN_ARGS: "--no-cfg"
     script:
