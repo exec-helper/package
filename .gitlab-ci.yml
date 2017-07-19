@@ -143,7 +143,7 @@ arch-linux-git:verify:
     script:
         - apt-get update
         - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils python-pip
-        - pip install gitchangelog
+        - pip install gitchangelog mako
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
@@ -161,7 +161,7 @@ arch-linux-git:verify:
     script:
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install gitchangelog
+        - pip install gitchangelog mako
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
