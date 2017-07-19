@@ -1,5 +1,5 @@
 @PACKAGE@ (@VERSION@) @DISTRIBUTION@; urgency=low
 
-  * Check /usr/share/doc/exec-helper/NEWS.Debian.gz for the actual changelog
+  * Check /usr/share/doc/exec-helper/exec-helper.news.gz for the actual changelog
 
  -- bverhagen <barrie.verhagen@gmail.com>  Tue, 30 May 2017 20:44:31 +0100
