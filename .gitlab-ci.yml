@@ -17,7 +17,7 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - pacman -S --noconfirm --needed make sed lsb-release sudo git python-pip
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip
         - pip install gitchangelog
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
@@ -30,7 +30,7 @@ stages:
 .pkgbuild:build: &pkgbuild_build
     stage: build
     script: 
-        - pacman -S --noconfirm --needed base-devel sudo lsb-release
+        - pacman -Sy --noconfirm --needed base-devel sudo lsb-release
         - *enable_sudo_nobody
         - cd pkgbuild/build
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
