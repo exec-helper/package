@@ -11,7 +11,7 @@ Build-Depends:
     git,
     pkg-config,
     doxygen,
-    dot,
+    graphviz,
     pkg-create-dbgsym
 Standards-Version: 4.0.0
 Homepage: https://github.com/bverhagen/exec-helper

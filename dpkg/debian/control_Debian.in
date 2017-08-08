@@ -10,7 +10,7 @@ Build-Depends:
     doxygen,
     git,
     doxygen,
-    dot,
+    graphviz,
     pkg-config
 Standards-Version: 4.0.0
 Homepage: https://github.com/bverhagen/exec-helper
