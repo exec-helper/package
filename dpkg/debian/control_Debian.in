@@ -9,7 +9,9 @@ Build-Depends:
     libyaml-cpp-dev (>= 0.5.2),
     doxygen,
     git,
-    lsb-release
+    doxygen,
+    dot,
+    pkg-config
 Standards-Version: 4.0.0
 Homepage: https://github.com/bverhagen/exec-helper
 Vcs-Browser: https://github.com/bverhagen/exec-helper

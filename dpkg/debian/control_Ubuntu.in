@@ -9,7 +9,9 @@ Build-Depends:
     libyaml-cpp-dev (>= 0.5.2),
     doxygen,
     git,
-    lsb-release,
+    pkg-config,
+    doxygen,
+    dot,
     pkg-create-dbgsym
 Standards-Version: 4.0.0
 Homepage: https://github.com/bverhagen/exec-helper
