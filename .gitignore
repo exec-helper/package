@@ -1,2 +1,14 @@
 # PKGBUILD specific ignores
 pkgbuild/build
+
+# DPKG specific ignores
+dpkg/dpkg_build
+dpkg/debian/control
+dpkg/debian/rules
+dpkg/debian/changelog
+dpkg/*.dsc
+dpkg/*.tar.xz
+dpkg/*.changes
+dpkg/*.deb
+dpkg/*.buildinfo
+dpkg/package
