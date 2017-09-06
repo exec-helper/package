@@ -7,6 +7,7 @@ Build-Depends:
     cmake,
     libboost-program-options-dev,
     libboost-filesystem-dev,
+    libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
     doxygen,
     git,
