@@ -15,15 +15,13 @@ GIT_DESCRIBE:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/de
 VERSION:=$(subst -,_,$(GIT_DESCRIBE))
 COMMIT:=$(shell git -C $(SOURCE_DIR) log -n1 --pretty=format:%H)
 
-CURDIR:=$(shell pwd)
-
 all: build
 
 prepare-build-dir:
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/$(CHANGELOG): prepare-build-dir
-	make --directory "$(SOURCE_DIR)" --quiet print-changelog > "$(CURDIR)/$(CHANGELOG_TEMP)"
+	make --directory "$(SOURCE_DIR)" --quiet print-changelog > $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	mv $(BUILD_DIR)/$(CHANGELOG_TEMP) $(BUILD_DIR)/$(CHANGELOG)
 
