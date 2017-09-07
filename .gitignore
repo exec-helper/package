@@ -12,3 +12,4 @@ dpkg/*.changes
 dpkg/*.deb
 dpkg/*.buildinfo
 dpkg/package
+dpkg/.gitchangelog.rc
