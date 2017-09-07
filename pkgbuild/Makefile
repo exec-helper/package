@@ -23,7 +23,7 @@ prepare-build-dir:
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/$(CHANGELOG): prepare-build-dir
-	cd $(SOURCE_DIR) && make --quiet print-changelog > $(CURDIR)/$(BUILD_DIR)/$(CHANGELOG_TEMP)
+	make --directory "$(SOURCE_DIR)" --quiet print-changelog > "$(CURDIR)/$(CHANGELOG_TEMP)"
 	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	mv $(BUILD_DIR)/$(CHANGELOG_TEMP) $(BUILD_DIR)/$(CHANGELOG)
 
