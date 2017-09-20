@@ -8,5 +8,6 @@ dpkg/*.dsc
 dpkg/*.tar.xz
 dpkg/*.changes
 dpkg/*.deb
+dpkg/*.ddeb
 dpkg/*.buildinfo
 dpkg/package

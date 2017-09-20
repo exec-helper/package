@@ -29,7 +29,7 @@ override_dh_auto_build-indep:
 	dh_auto_build -- docs-html
 
 override_dh_auto_build-dep:
-	dh_auto_build -- exec-helper docs-man
+	dh_auto_build -- exec-helper docs-man integration
 
 override_dh_auto_build: override_dh_auto_build-indep override_dh_auto_build-dep
 
@@ -39,6 +39,7 @@ override_dh_auto_test:
 override_dh_auto_install-dep:
 	cmake -DCOMPONENT=runtime -P "${build_directory}/cmake_install.cmake"
 	cmake -DCOMPONENT=docs-man -P "${build_directory}/cmake_install.cmake"
+	cmake -DCOMPONENT=integration -P "${build_directory}/cmake_install.cmake"
 
 override_dh_auto_install-indep:
 	cmake -DCOMPONENT=docs-html -P "${build_directory}/cmake_install.cmake"

@@ -30,6 +30,7 @@ $(BUILD_DIR)/$(CHANGELOG): prepare-build-dir
 $(BUILD_DIR)/$(PKG_FILE): prepare-build-dir $(PKG_IN)
 	cp $(PKG_IN) $(BUILD_DIR)/$(PKG_TEMP)
 	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(PKG_TEMP)
+	sed -i "s/@VERSION@/$(VERSION)/g" $(BUILD_DIR)/$(PKG_TEMP)
 	sed -i "s/@GIT_REF@/commit=$(COMMIT)/g" $(BUILD_DIR)/$(PKG_TEMP)
 	sed -i "s/@CHANGELOG@/$(CHANGELOG)/g" $(BUILD_DIR)/$(PKG_TEMP)
 	mv $(BUILD_DIR)/$(PKG_TEMP) $(BUILD_DIR)/$(PKG_FILE)

@@ -46,13 +46,16 @@ ARCHITECTURE:=amd64
 endif
 
 PACKAGE_DIR=package
+			# Ubuntu generates .ddeb files for debug packages that are not called like the source name rather than a .deb file
 PACKAGES = 	$(PROJECT_NAME)_$(VERSION).dsc \
 			$(PROJECT_NAME)_$(VERSION).debian.tar.xz \
 			$(SOURCE_ARCHIVE) \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).deb \
+			$(PROJECT_NAME)-test_$(VERSION)_$(ARCHITECTURE).deb \
 			$(PROJECT_NAME)-docs_$(VERSION)_all.deb \
-			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
+			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb \
+			$(PROJECT_NAME)-test-dbgsym_$(VERSION)_$(ARCHITECTURE).*deb
 
 BUILD_INFO_FILE=$(PROJECT_NAME)_$(VERSION)*.buildinfo
 

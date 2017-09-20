@@ -53,8 +53,10 @@ stages:
 .pkgbuild:verify: &pkgbuild_verify
     stage: verify
     script:
+        - pacman -Sy
         - pacman --needed --noconfirm -U pkgbuild/build/*.tar.xz
         - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - exec-helper-integration-test
         - verification/run-examples.sh
 
 pkgbuild:prepare:
@@ -187,6 +189,7 @@ arch-linux-git:verify:
         - apt --fix-broken --yes install
         - dpkg -i dpkg/package/*.deb
         - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
+        - exec-helper-integration-test
         - verification/run-examples.sh
 
 dpkg:prepare:
