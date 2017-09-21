@@ -2,14 +2,11 @@
 pkgbuild/build
 
 # DPKG specific ignores
+dpkg/dpkg_prepare
 dpkg/dpkg_build
-dpkg/debian/control
-dpkg/debian/rules
-dpkg/debian/changelog
 dpkg/*.dsc
 dpkg/*.tar.xz
 dpkg/*.changes
 dpkg/*.deb
 dpkg/*.buildinfo
 dpkg/package
-dpkg/.gitchangelog.rc

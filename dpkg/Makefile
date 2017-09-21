@@ -9,6 +9,7 @@ DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
 VENDOR:=$(shell lsb_release --id --short)
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
+PREPARE_DIR=dpkg_prepare
 BUILD_DIR=dpkg_build
 
 CHANGELOG_FILE=debian/changelog
@@ -59,34 +60,38 @@ CURDIR:=$(shell pwd)
 
 all: build
 
-$(GITCHANGELOG_RC): $(SOURCE_DIR)/$(GITCHANGELOG_RC)
-	cp $(SOURCE_DIR)/$(GITCHANGELOG_RC) $(GITCHANGELOG_RC_TEMP)
-	sed -i 's@output_engine = .*$$@output_engine = makotemplate(\"$(CURDIR)/debian-changelog.tpl\")@g' $(GITCHANGELOG_RC_TEMP)
-	mv $(GITCHANGELOG_RC_TEMP) $(GITCHANGELOG_RC)
+$(PREPARE_DIR):
+	mkdir -p $(PREPARE_DIR)
+	cp -r debian $(PREPARE_DIR)/
 
-$(CHANGELOG_FILE): $(GITCHANGELOG_TEMPLATE) $(GITCHANGELOG_RC)
-	make --directory "$(SOURCE_DIR)" CHANGELOG_CONFIG="$(CURDIR)/$(GITCHANGELOG_RC)" CHANGELOG_OUTPUT="$(CURDIR)/$(CHANGELOG_TEMP)" print-changelog
-	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(CHANGELOG_TEMP)
-	sed -i "s/@PACKAGE@/$(PROJECT_NAME)/g" $(CHANGELOG_TEMP)
-	sed -i "s/@DISTRIBUTION@/$(DISTRIBUTION)/g" $(CHANGELOG_TEMP)
-	sed -i "s/@AUTHOR@/maintainer/g" $(CHANGELOG_TEMP)
-	sed -i "s/@AUTHOR_EMAIL@/maintainer@exec-helper.xyz/g" $(CHANGELOG_TEMP)
-	mv $(CHANGELOG_TEMP) $(CHANGELOG_FILE)
+$(PREPARE_DIR)/$(GITCHANGELOG_RC): $(SOURCE_DIR)/$(GITCHANGELOG_RC) $(PREPARE_DIR)
+	cp $(SOURCE_DIR)/$(GITCHANGELOG_RC) $(PREPARE_DIR)/$(GITCHANGELOG_RC_TEMP)
+	sed -i 's@output_engine = .*$$@output_engine = makotemplate(\"$(CURDIR)/debian-changelog.tpl\")@g' $(PREPARE_DIR)/$(GITCHANGELOG_RC_TEMP)
+	mv $(PREPARE_DIR)/$(GITCHANGELOG_RC_TEMP) $(PREPARE_DIR)/$(GITCHANGELOG_RC)
 
-$(CONTROL_FILE): $(CONTROL_IN)
-	cp $(CONTROL_IN) $(CONTROL_FILE)
+$(PREPARE_DIR)/$(CHANGELOG_FILE): $(GITCHANGELOG_TEMPLATE) $(PREPARE_DIR)/$(GITCHANGELOG_RC) $(PREPARE_DIR)
+	make --directory "$(SOURCE_DIR)" CHANGELOG_CONFIG="$(CURDIR)/$(PREPARE_DIR)/$(GITCHANGELOG_RC)" CHANGELOG_OUTPUT="$(CURDIR)/$(PREPARE_DIR)/$(CHANGELOG_TEMP)" print-changelog
+	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(PREPARE_DIR)/$(CHANGELOG_TEMP)
+	sed -i "s/@PACKAGE@/$(PROJECT_NAME)/g" $(PREPARE_DIR)/$(CHANGELOG_TEMP)
+	sed -i "s/@DISTRIBUTION@/$(DISTRIBUTION)/g" $(PREPARE_DIR)/$(CHANGELOG_TEMP)
+	sed -i "s/@AUTHOR@/maintainer/g" $(PREPARE_DIR)/$(CHANGELOG_TEMP)
+	sed -i "s/@AUTHOR_EMAIL@/maintainer@exec-helper.xyz/g" $(PREPARE_DIR)/$(CHANGELOG_TEMP)
+	mv $(PREPARE_DIR)/$(CHANGELOG_TEMP) $(PREPARE_DIR)/$(CHANGELOG_FILE)
 
-$(RULES_FILE): $(RULES_IN)
-	cp $(RULES_IN) $(RULES_TEMP)
+$(PREPARE_DIR)/$(CONTROL_FILE): $(CONTROL_IN) $(PREPARE_DIR)
+	cp $(CONTROL_IN) $(PREPARE_DIR)/$(CONTROL_FILE)
+
+$(PREPARE_DIR)/$(RULES_FILE): $(RULES_IN) $(PREPARE_DIR)
+	cp $(RULES_IN) $(PREPARE_DIR)/$(RULES_TEMP)
 ifeq ($(VENDOR),Ubuntu)
-	echo "" >> $(RULES_TEMP)
-	echo "override_dh_strip:" >> $(RULES_TEMP)
-	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(RULES_TEMP)
+	echo "" >> $(PREPARE_DIR)/$(RULES_TEMP)
+	echo "override_dh_strip:" >> $(PREPARE_DIR)/$(RULES_TEMP)
+	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(PREPARE_DIR)/$(RULES_TEMP)
 endif
-	mv $(RULES_TEMP) $(RULES_FILE)
+	mv $(PREPARE_DIR)/$(RULES_TEMP) $(PREPARE_DIR)/$(RULES_FILE)
 
-$(DEBIAN_ARCHIVE): $(CONTROL_FILE) $(CHANGELOG_FILE) $(RULES_FILE)
-	tar -c --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af $(DEBIAN_ARCHIVE) debian
+$(DEBIAN_ARCHIVE): $(PREPARE_DIR)/$(CONTROL_FILE) $(PREPARE_DIR)/$(CHANGELOG_FILE) $(PREPARE_DIR)/$(RULES_FILE)
+	tar -c --directory $(PREPARE_DIR) --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af $(DEBIAN_ARCHIVE) debian
 
 $(SOURCE_ARCHIVE): $(SOURCE_DIR)/$(SOURCES)
 	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
@@ -123,16 +128,11 @@ build:: deploy-archives install-build-deps
 	test -f $(BUILD_INFO_FILE) && cp $(BUILD_INFO_FILE) $(PACKAGE_DIR)/ || true
 
 clean:
-	rm -f $(CONTROL_FILE)
-	rm -f $(CHANGELOG_FILE)
-	rm -f $(RULES_FILE)
-	rm -f $(CHANGELOG_TEMP_TEMPLATE)*
-	rm -f $(GITCHANGELOG_RC)
-	rm -f $(GITCHANGELOG_RC_TEMP_TEMPLATE)*
 	rm -f $(DEBIAN_ARCHIVE)
 	rm -f $(SOURCE_ARCHIVE)
 	rm -f $(BUILD_DEPS_PACKAGE)
 	rm -f $(PACKAGES)
+	rm -rf $(PREPARE_DIR)
 	rm -rf $(BUILD_DIR)
 	rm -rf $(PACKAGE_DIR)
 
