@@ -1,7 +1,7 @@
 PROJECT_NAME:=exec-helper
 SOURCE_DIR:=../$(PROJECT_NAME)
-BUILD_DIR:=build
-TEST_BUILD_DIR:=build-test
+BUILD_DIR:=build_package
+TEST_BUILD_DIR:=build_test
 
 CHANGELOG:=$(PROJECT_NAME).changelog
 CHANGELOG_TEMP_TEMPLATE:=$(CHANGELOG).tmp
