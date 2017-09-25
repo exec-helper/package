@@ -19,23 +19,14 @@ Homepage: https://github.com/bverhagen/exec-helper
 Vcs-Browser: https://github.com/bverhagen/exec-helper
 Vcs-Git: https://github.com/bverhagen/exec-helper.git
 
-Package: exec-helper
+Package: exec-helper-test
 Architecture: any
-Section: misc
+Section: devel
 Priority: optional
 Depends:
+    exec-helper,
     ${shlibs:Depends},
     ${misc:Depends}
-Description: How To Get Coffee In Peace: a shell meta-wrapper
- This package provides the exec-helper binaries and the man-page documentation.
-Homepage: https://github.com/bverhagen/exec-helper
-
-Package: exec-helper-docs
-Architecture: all
-Section: doc
-Priority: optional
-Depends:
-    ${misc:Depends}
-Description: HTML API documentation for exec-helper
- This package provides the API documentation for exec-helper in HTML format.
-Homepage: https://github.com/bverhagen/exec-helper
+Description: Tests for exec-helper. Mainly useful for development purposes
+ This package contains the unittests and integration tests for exec-helper.
+ This package is mainly a development/CI tool.

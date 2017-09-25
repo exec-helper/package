@@ -40,6 +40,22 @@ stages:
             - pkgbuild/build/PKGBUILD
             - pkgbuild/build/*.tar.xz
 
+.pkgbuild:build-test: &pkgbuild_build_test
+    stage: build
+    variables:
+        BUILD_DIR: build-test
+    script: 
+        - pacman -Sy --noconfirm --needed base-devel sudo lsb-release namcap
+        - *enable_sudo_nobody
+        - cd pkgbuild/$BUILD_DIR
+        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
+        - namcap PKGBUILD
+        - namcap *.tar.xz
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - pkgbuild/$BUILD_DIR/*.tar.xz
+
 .pkgbuild:analyze: &pkgbuild_analyze
     stage: verify
     variables:
@@ -95,6 +111,11 @@ arch-linux-git:build:
     dependencies:
         - arch-linux-git:prepare
 
+pkgbuild:build-test:
+    <<: *pkgbuild_build_test
+    image: dock0/arch
+    dependencies: []
+
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
     image: dock0/arch
@@ -120,12 +141,14 @@ pkgbuild:verify:
     image: dock0/arch
     dependencies:
         - pkgbuild:build
+        - pkgbuild:build-test
 
 arch-linux:verify:
     <<: *pkgbuild_verify
     image: dock0/arch
     dependencies:
         - arch-linux:build
+        - pkgbuild:build-test
     only:
         - master
 
@@ -134,6 +157,7 @@ arch-linux-git:verify:
     image: dock0/arch
     dependencies:
         - arch-linux-git:build
+        - pkgbuild:build-test
 
 ############################################################################### dpkg  #############################################################
 
@@ -158,6 +182,23 @@ arch-linux-git:verify:
     stage: build
     variables:
         MAKE_TARGETS: build
+        ADDITIONAL_BUILD_DEPENDENCIES: ""
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - pip install gitchangelog mako
+        - *enable_sudo_nobody
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - "dpkg/package/*"
+
+.dpkg:build-test: &dpkg_build_test
+    stage: build
+    variables:
+        MAKE_TARGETS: build-test
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
@@ -238,6 +279,32 @@ ubuntu-rolling:build:
     dependencies:
         - ubuntu-rolling:prepare
 
+dpkg:build-test:
+    <<: *dpkg_build_test
+    image: debian:testing
+    dependencies: []
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build-test
+
+debian-testing:build-test:
+    <<: *dpkg_build_test
+    image: debian:testing
+    dependencies: []
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build-test
+
+ubuntu-xenial:build-test:
+    variables:
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
+    <<: *dpkg_build_test
+    image: ubuntu:xenial
+    dependencies: []
+
+ubuntu-rolling:build-test:
+    <<: *dpkg_build_test
+    image: ubuntu:rolling
+    dependencies: []
+
 dpkg:analyze:
     <<: *dpkg_analyze
     image: debian:testing
@@ -273,21 +340,25 @@ dpkg:verify:
     image: debian:testing
     dependencies:
         - dpkg:build
+        - dpkg:build-test
 
 debian-testing:verify:
     <<: *dpkg_verify
     image: debian:testing
     dependencies:
         - debian-testing:build
+        - debian-testing:build-test
 
 ubuntu-xenial:verify:
     <<: *dpkg_verify
     image: ubuntu:xenial
     dependencies:
         - ubuntu-xenial:build
+        - ubuntu-xenial:build-test
 
 ubuntu-rolling:verify:
     <<: *dpkg_verify
     image: ubuntu:rolling
     dependencies:
         - ubuntu-rolling:build
+        - ubuntu-rolling:build-test

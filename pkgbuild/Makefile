@@ -1,6 +1,7 @@
 PROJECT_NAME:=exec-helper
 SOURCE_DIR:=../$(PROJECT_NAME)
 BUILD_DIR:=build
+TEST_BUILD_DIR:=build-test
 
 CHANGELOG:=$(PROJECT_NAME).changelog
 CHANGELOG_TEMP_TEMPLATE:=$(CHANGELOG).tmp
@@ -8,6 +9,7 @@ CHANGELOG_TEMP:=$(shell mktemp --dry-run $(CHANGELOG_TEMP_TEMPLATE).XXX)
 
 PKG_FILE:=PKGBUILD
 PKG_IN:=$(PKG_FILE).in
+TEST_PKG_IN:=$(PKG_FILE).test.in
 PKG_TEMP_TEMPLATE:=$(PKG_FILE).tmp
 PKG_TEMP:=$(shell mktemp --dry-run $(PKG_TEMP_TEMPLATE).XXX)
 
@@ -19,15 +21,18 @@ CURDIR:=$(shell pwd)
 
 all: build
 
-prepare-build-dir:
+$(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(BUILD_DIR)/$(CHANGELOG): prepare-build-dir
+$(TEST_BUILD_DIR):
+	mkdir -p $(TEST_BUILD_DIR)
+
+$(BUILD_DIR)/$(CHANGELOG): $(BUILD_DIR)
 	make --directory "$(SOURCE_DIR)" CHANGELOG_OUTPUT="$(CURDIR)/$(BUILD_DIR)/$(CHANGELOG_TEMP)" print-changelog
 	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	mv $(BUILD_DIR)/$(CHANGELOG_TEMP) $(BUILD_DIR)/$(CHANGELOG)
 
-$(BUILD_DIR)/$(PKG_FILE): prepare-build-dir $(PKG_IN)
+$(BUILD_DIR)/$(PKG_FILE): $(BUILD_DIR) $(PKG_IN)
 	cp $(PKG_IN) $(BUILD_DIR)/$(PKG_TEMP)
 	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(PKG_TEMP)
 	sed -i "s/@VERSION@/$(VERSION)/g" $(BUILD_DIR)/$(PKG_TEMP)
@@ -35,14 +40,26 @@ $(BUILD_DIR)/$(PKG_FILE): prepare-build-dir $(PKG_IN)
 	sed -i "s/@CHANGELOG@/$(CHANGELOG)/g" $(BUILD_DIR)/$(PKG_TEMP)
 	mv $(BUILD_DIR)/$(PKG_TEMP) $(BUILD_DIR)/$(PKG_FILE)
 
+$(TEST_BUILD_DIR)/$(PKG_FILE): $(TEST_BUILD_DIR) $(TEST_PKG_IN)
+	cp $(PKG_IN) $(TEST_BUILD_DIR)/$(PKG_TEMP)
+	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
+	sed -i "s/@VERSION@/$(VERSION)/g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
+	sed -i "s/@GIT_REF@/commit=$(COMMIT)/g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
+	sed -i "s/@CHANGELOG@//g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
+	mv $(TEST_BUILD_DIR)/$(PKG_TEMP) $(TEST_BUILD_DIR)/$(PKG_FILE)
+
 pkgbuild:: $(BUILD_DIR)/$(PKG_FILE) $(BUILD_DIR)/$(CHANGELOG)
 	sed -i "s/@PACKAGE@/exec-helper/g" $(BUILD_DIR)/$(PKG_FILE)
 
 pkgbuild-git:: $(BUILD_DIR)/$(PKG_FILE) $(BUILD_DIR)/$(CHANGELOG)
 	sed -i "s/@PACKAGE@/exec-helper-git/g" $(BUILD_DIR)/$(PKG_FILE)
 
+pkgbuild-test: $(TEST_BUILD_DIR)/$(PKG_FILE)
+	sed -i "s/@PACKAGE@/exec-helper-test/g" $(BUILD_DIR)/$(PKG_FILE)
+
 prepare: pkgbuild
 prepare-git: pkgbuild-git
+prepare-test: pkgbuild-test
 
 build: prepare
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
@@ -50,7 +67,11 @@ build: prepare
 build-git: prepare-git
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
+build-test: prepare-test
+	cd $(TEST_BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
+
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -rf $(TEST_BUILD_DIR)
 
-.PHONY: prepare-build-dir prepare-version prepare-commit prepare-common pkgbuild pkgbuild-git build build-git clean all
+.PHONY: prepare-build-dir prepare-version prepare-commit prepare-test pkgbuild pkgbuild-git pkgbuild-test build build-git build-test clean all

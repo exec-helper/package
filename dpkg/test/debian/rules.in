@@ -15,21 +15,21 @@ include /usr/share/dpkg/default.mk
 # package maintainers to append LDFLAGS
 #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 source_directory=$(CURDIR)
-build_directory=build
+build_directory=build-test
 prefix = $(CURDIR)/debian/tmp
 
 # main packaging script based on dh7 syntax
 %:
-	dh $@ --sourcedirectory=${source_directory} --builddirectory=build --parallel
+	dh $@ --sourcedirectory=${source_directory} --builddirectory=${build_directory} --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)/usr
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)/usr
 
 override_dh_auto_build-indep:
-	dh_auto_build -- docs-html
+	dh_auto_build -- docs-man-integration
 
 override_dh_auto_build-dep:
-	dh_auto_build -- exec-helper docs-man
+	dh_auto_build -- integration
 
 override_dh_auto_build: override_dh_auto_build-indep override_dh_auto_build-dep
 
@@ -37,10 +37,9 @@ override_dh_auto_test:
 	# No tests
 	
 override_dh_auto_install-dep:
-	cmake -DCOMPONENT=runtime -P "${build_directory}/cmake_install.cmake"
-	cmake -DCOMPONENT=docs-man -P "${build_directory}/cmake_install.cmake"
+	cmake -DCOMPONENT=integration -P "${build_directory}/cmake_install.cmake"
 
 override_dh_auto_install-indep:
-	cmake -DCOMPONENT=docs-html -P "${build_directory}/cmake_install.cmake"
+	cmake -DCOMPONENT=integration -P "${build_directory}/cmake_install.cmake"
 
 override_dh_auto_install: override_dh_auto_install-dep override_dh_auto_install-indep

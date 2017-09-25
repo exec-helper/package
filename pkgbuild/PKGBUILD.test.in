@@ -1,0 +1,44 @@
+# Maintainer: Bart Verhagen <barrie.verhagen@gmail.com>
+pkgname=('@PACKAGE@')
+pkgbase='exec-helper'
+pkgver=@VERSION@
+pkgrel=1
+epoch=
+pkgdesc="Test packages for the associated exec-helper package"
+arch=('i686' 'x86_64')
+url="https://github.com/bverhagen/exec-helper"
+license=('GPL3')
+groups=()
+depends=(yaml-cpp boost-libs exec-helper)
+makedepends=(cmake boost make doxygen graphviz git pkg-config)
+checkdepends=()
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=@CHANGELOG@
+source=('exec-helper::git+https://github.com/bverhagen/exec-helper.git#@GIT_REF@')
+noextract=()
+validpgpkeys=()
+
+_git_dir='exec-helper'
+_build_dir='build'
+
+pkgver() {
+    printf "%s" $pkgver
+}
+
+build() {
+    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON
+    make -C $_build_dir integration docs-man-integration
+
+}
+
+package_@PACKAGE@() {
+    cmake -DCOMPONENT=integration -P "$_build_dir/cmake_install.cmake"
+}
+
+md5sums=('SKIP')

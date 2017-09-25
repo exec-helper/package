@@ -1,6 +1,6 @@
 PROJECT_NAME:=exec-helper
 
-SOURCE_DIR:=../$(PROJECT_NAME)
+SOURCE_DIR:=../../$(PROJECT_NAME)
 SOURCE_FILES:=CMakeLists.txt
 SOURCES:=$(SOURCE_DIR)/$(SOURCE_FILES)
 
@@ -45,17 +45,19 @@ ifeq ($(ARCHITECTURE),x86_64)
 ARCHITECTURE:=amd64
 endif
 
-PACKAGE_DIR=package
+PACKAGE_DIR=../package
 			# Ubuntu generates .ddeb files for debug packages that are not called like the source name rather than a .deb file
-PACKAGES = 	$(PROJECT_NAME)_$(VERSION).dsc \
+PACKAGES =	$(PROJECT_NAME)-test_$(VERSION)_$(ARCHITECTURE).deb \
+			$(PROJECT_NAME)-test-dbgsym_$(VERSION)_$(ARCHITECTURE).*deb
+
+SPURIOUS_PACKAGES = $(PROJECT_NAME)_$(VERSION).dsc \
 			$(PROJECT_NAME)_$(VERSION).debian.tar.xz \
 			$(SOURCE_ARCHIVE) \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes \
-			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).deb \
-			$(PROJECT_NAME)-docs_$(VERSION)_all.deb \
-			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
+			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).*deb
 
-BUILD_INFO_FILE=$(PROJECT_NAME)_$(VERSION)*.buildinfo
+
+BUILD_INFO_FILE=$(PROJECT_NAME)-test_$(VERSION)*.buildinfo
 
 CURDIR:=$(shell pwd)
 
@@ -120,9 +122,6 @@ install-build-deps: $(BUILD_DEPS_PACKAGE)
 
 prepare:: $(DEBIAN_ARCHIVE) $(SOURCE_ARCHIVE)
 
-prepare-test:
-	$(MAKE) --directory test prepare
-
 build:: deploy-archives install-build-deps
 	cd $(BUILD_DIR) && dpkg-buildpackage -jauto -us -uc
 	mkdir -p $(PACKAGE_DIR)
@@ -131,18 +130,14 @@ build:: deploy-archives install-build-deps
 	# Some systems do not generate a build info file
 	test -f $(BUILD_INFO_FILE) && cp $(BUILD_INFO_FILE) $(PACKAGE_DIR)/ || true
 
-build-test:
-	$(MAKE) --directory test build
-
 clean:
 	rm -f $(DEBIAN_ARCHIVE)
 	rm -f $(SOURCE_ARCHIVE)
 	rm -f $(BUILD_DEPS_PACKAGE)
 	rm -f $(PACKAGES)
+	rm -f $(SPURIOUS_PACKAGES)
 	rm -rf $(PREPARE_DIR)
 	rm -rf $(BUILD_DIR)
-	rm -rf $(PACKAGE_DIR)
-	$(MAKE) --directory test clean
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'

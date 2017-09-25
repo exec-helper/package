@@ -50,15 +50,3 @@ Depends:
     ${misc:Depends}
 Description: debugging symbols for exec-helper
  This package contains the debugging symbols for exec-helper.
-
-Package: exec-helper-test
-Architecture: any
-Section: devel
-Priority: optional
-Depends:
-    exec-helper (= ${binary:Version}),
-    ${shlibs:Depends},
-    ${misc:Depends}
-Description: Tests for exec-helper. Mainly useful for development purposes
- This package contains the unittests and integration tests for exec-helper.
- This package is mainly a development/CI tool.
