@@ -2,12 +2,12 @@
 pkgbuild/build
 
 # DPKG specific ignores
-dpkg/dpkg_prepare
-dpkg/dpkg_build
-dpkg/*.dsc
-dpkg/*.tar.xz
-dpkg/*.changes
-dpkg/*.deb
-dpkg/*.ddeb
-dpkg/*.buildinfo
+dpkg/**/dpkg_prepare
+dpkg/**/dpkg_build
+dpkg/**/*.dsc
+dpkg/**/*.tar.xz
+dpkg/**/*.changes
+dpkg/**/*.deb
+dpkg/**/*.ddeb
+dpkg/**/*.buildinfo
 dpkg/package

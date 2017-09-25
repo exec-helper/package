@@ -96,7 +96,7 @@ endif
 $(DEBIAN_ARCHIVE): $(PREPARE_DIR)/$(CONTROL_FILE) $(PREPARE_DIR)/$(CHANGELOG_FILE) $(PREPARE_DIR)/$(RULES_FILE)
 	tar -c --directory $(PREPARE_DIR) --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af $(DEBIAN_ARCHIVE) debian
 
-$(SOURCE_ARCHIVE): $(SOURCE_DIR)/$(SOURCES)
+$(SOURCE_ARCHIVE): $(SOURCES)
 	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
 
 $(BUILD_DIR):

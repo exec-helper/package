@@ -11,7 +11,7 @@ pkgbuild:
 dpkg:
 	$(MAKE) -C dpkg $(TARGET)
 
-# Distributions
+# Distribution to package manager mapping
 arch: pkgbuild
 
 debian: dpkg
@@ -25,6 +25,9 @@ prepare:
 
 build:
 	$(MAKE) find-distribution TARGET=build
+
+build-test:
+	$(MAKE) find-distribution TARGET=build-test
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
