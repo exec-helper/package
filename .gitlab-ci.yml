@@ -49,10 +49,9 @@ stages:
     script: 
         - pacman -Sy --noconfirm --needed base-devel sudo lsb-release namcap
         - *enable_sudo_nobody
-        - cd $BUILD_DIR
-        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
-        - namcap PKGBUILD
-        - namcap *.tar.xz
+        - sudo -u nobody make build-test
+        - namcap $BUILD_DIR/PKGBUILD
+        - namcap $BUILD_DIR/*.tar.xz
     artifacts:
         expire_in: 1 day
         paths:
@@ -192,7 +191,7 @@ arch-linux-git:verify:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip ${ADDITIONAL_BUILD_DEPENDENCIES}
         - pip install gitchangelog mako
         - *enable_sudo_nobody
-        - echo Making targets= ${MAKE_TARGETS}
+        - echo Making targets=${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
