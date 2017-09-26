@@ -71,9 +71,10 @@ stages:
     stage: verify
     variables:
         BUILD_DIR: pkgbuild/build_package
+        TEST_BUILD_DIR: pkgbuild/build_test
     script:
         - pacman -Sy
-        - pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz
+        - pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
         - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - exec-helper-integration-test
         - verification/run-examples.sh
