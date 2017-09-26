@@ -55,7 +55,7 @@ pkgbuild-git:: $(BUILD_DIR)/$(PKG_FILE) $(BUILD_DIR)/$(CHANGELOG)
 	sed -i "s/@PACKAGE@/exec-helper-git/g" $(BUILD_DIR)/$(PKG_FILE)
 
 pkgbuild-test: $(TEST_BUILD_DIR)/$(PKG_FILE)
-	sed -i "s/@PACKAGE@/exec-helper-test/g" $(BUILD_DIR)/$(PKG_FILE)
+	sed -i "s/@PACKAGE@/exec-helper-test/g" $(TEST_BUILD_DIR)/$(PKG_FILE)
 
 prepare: pkgbuild
 prepare-git: pkgbuild-git

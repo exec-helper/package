@@ -119,6 +119,18 @@ pkgbuild:build-test:
     image: dock0/arch
     dependencies: []
 
+arch-linux:build-test:
+    <<: *pkgbuild_build_test
+    image: dock0/arch
+    dependencies: []
+    only:
+        - master
+
+arch-linux-git:build-test:
+    <<: *pkgbuild_build_test
+    image: dock0/arch
+    dependencies: []
+
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
     image: dock0/arch
@@ -151,7 +163,7 @@ arch-linux:verify:
     image: dock0/arch
     dependencies:
         - arch-linux:build
-        - pkgbuild:build-test
+        - arch-linux:build-test
     only:
         - master
 
@@ -160,7 +172,7 @@ arch-linux-git:verify:
     image: dock0/arch
     dependencies:
         - arch-linux-git:build
-        - pkgbuild:build-test
+        - arch-linux-git:build-test
 
 ############################################################################### dpkg  #############################################################
 
