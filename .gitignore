@@ -1,5 +1,6 @@
 # PKGBUILD specific ignores
-pkgbuild/build
+pkgbuild/build_package
+pkgbuild/build_test
 
 # DPKG specific ignores
 dpkg/**/dpkg_prepare

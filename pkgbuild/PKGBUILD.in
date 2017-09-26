@@ -28,7 +28,7 @@ _git_dir='exec-helper'
 _build_dir='build'
 
 pkgver() {
-    printf "%s.r%s.%s" $pkgver "$(git -C $_git_dir rev-list --count HEAD)" "$(git -C $_git_dir rev-parse --short HEAD)"
+    printf "%s" $pkgver
 }
 
 build() {

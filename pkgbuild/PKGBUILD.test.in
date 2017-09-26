@@ -31,13 +31,9 @@ pkgver() {
     printf "%s" $pkgver
 }
 
-build() {
+package_@PACKAGE@() {
     cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON
     make -C $_build_dir integration docs-man-integration
-
-}
-
-package_@PACKAGE@() {
     cmake -DCOMPONENT=integration -P "$_build_dir/cmake_install.cmake"
 }
 
