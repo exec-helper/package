@@ -15,7 +15,7 @@ Build-Depends:
     doxygen,
     graphviz,
     pkg-create-dbgsym
-Standards-Version: 4.0.0
+Standards-Version: 4.1.0
 Homepage: https://github.com/bverhagen/exec-helper
 Vcs-Browser: https://github.com/bverhagen/exec-helper
 Vcs-Git: https://github.com/bverhagen/exec-helper.git
