@@ -68,7 +68,7 @@ stages:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
         BUILD_DIR: pkgbuild/build_package
     script:
-        - pacman -Sy --noconfirm --needed namcap
+        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap
         - namcap $BUILD_DIR/PKGBUILD
         - namcap $BUILD_DIR/*.tar.xz
 
