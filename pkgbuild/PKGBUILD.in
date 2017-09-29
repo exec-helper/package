@@ -37,7 +37,7 @@ build() {
 
 package_@PACKAGE@() {
     # Explicitly set cmake to use the system catch package without installing this package: this way we are sure no test related stuff can be built
-    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=ON -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON
+    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON
     make -C $_build_dir exec-helper docs-man
     cmake -DCOMPONENT=runtime -P "$_build_dir/cmake_install.cmake"
     cmake -DCOMPONENT=docs-man -P "$_build_dir/cmake_install.cmake"
@@ -50,7 +50,7 @@ package_@PACKAGE@-docs() {
 	depends=()
 
     # Explicitly set cmake to use the system catch package without installing this package: this way we are sure no test related stuff can be built
-    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=ON -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=OFF
+    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=OFF
     make -C $_build_dir docs-html
     cmake -DCOMPONENT=docs-html -P "$_build_dir/cmake_install.cmake"
 }

@@ -51,6 +51,7 @@ stages:
     script: 
         - pacman -Sy --noconfirm --needed sudo base-devel
         - exec-helper/gitlab/install-aur.sh libcatch-cpp-headers         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
+        - exec-helper/gitlab/install-aur.sh microsoft-gsl-git            # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - pacman -S --noconfirm --needed lsb-release namcap
         - *enable_sudo_nobody
         - sudo -u nobody make build-test
