@@ -70,7 +70,7 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         PACKAGE_DIR: package
     script:
-        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap
+        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make
         - make PREFIX=$(pwd)/${PACKAGE_DIR} install
         - namcap ${PACKAGE_DIR}/PKGBUILD
         - namcap ${PACKAGE_DIR}/.SRCINFO
