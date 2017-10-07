@@ -18,7 +18,7 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel
         - exec-helper/gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - pip install gitchangelog
         - *enable_sudo_nobody
