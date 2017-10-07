@@ -25,6 +25,9 @@ find-distribution:
 prepare:
 	$(MAKE) find-distribution TARGET=prepare
 
+prepare-git:
+	$(MAKE) find-distribution TARGET=prepare-git
+
 build:
 	$(MAKE) find-distribution TARGET=build
 
