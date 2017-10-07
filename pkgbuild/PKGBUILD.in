@@ -1,6 +1,6 @@
 # Maintainer: Bart Verhagen <barrie.verhagen@gmail.com>
 pkgname=('@PACKAGE@' '@PACKAGE@-docs')
-pkgbase='exec-helper'
+pkgbase='@PACKAGE@'
 pkgver=@VERSION@
 pkgrel=1
 epoch=

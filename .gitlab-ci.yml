@@ -115,6 +115,8 @@ arch-linux:prepare:
 arch-linux-git:prepare:
     <<: *pkgbuild_prepare
     image: dock0/arch
+    variables:
+        MAKE_TARGETS: prepare-git
 
 pkgbuild:build:
     <<: *pkgbuild_build
