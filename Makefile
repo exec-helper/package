@@ -1,3 +1,5 @@
+PREFIX:=package
+
 all: build
 
 clean:
@@ -18,7 +20,7 @@ debian: dpkg
 ubuntu: dpkg
 
 find-distribution:
-	$(MAKE) $(shell lsb_release --id --short | tr A-Z a-z) TARGET=$(TARGET)
+	$(MAKE) $(shell lsb_release --id --short | tr A-Z a-z) TARGET=$(TARGET) PREFIX=$(PREFIX)
 
 prepare:
 	$(MAKE) find-distribution TARGET=prepare
@@ -28,6 +30,9 @@ build:
 
 build-test:
 	$(MAKE) find-distribution TARGET=build-test
+
+install:
+	$(MAKE) find-distribution TARGET=install PREFIX=$(PREFIX)
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'

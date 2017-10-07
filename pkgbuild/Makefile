@@ -13,11 +13,16 @@ TEST_PKG_IN:=$(PKG_FILE).test.in
 PKG_TEMP_TEMPLATE:=$(PKG_FILE).tmp
 PKG_TEMP:=$(shell mktemp --dry-run $(PKG_TEMP_TEMPLATE).XXX)
 
+SRC_INFO_FILE_NAME:=.SRCINFO
+SRC_INFO_FILE:=$(BUILD_DIR)/$(SRC_INFO_FILE_NAME)
+
 GIT_DESCRIBE:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) log -n1 --pretty=format:g%h)
 VERSION:=$(subst -,_,$(GIT_DESCRIBE))
 COMMIT:=$(shell git -C $(SOURCE_DIR) log -n1 --pretty=format:%H)
 
 CURDIR:=$(shell pwd)
+
+PREFIX:=package
 
 all: build
 
@@ -57,8 +62,11 @@ pkgbuild-git:: $(BUILD_DIR)/$(PKG_FILE) $(BUILD_DIR)/$(CHANGELOG)
 pkgbuild-test: $(TEST_BUILD_DIR)/$(PKG_FILE)
 	sed -i "s/@PACKAGE@/exec-helper-test/g" $(TEST_BUILD_DIR)/$(PKG_FILE)
 
-prepare: pkgbuild
-prepare-git: pkgbuild-git
+$(SRC_INFO_FILE): $(PKGBUILD) $(BUILD_DIR)
+	cd $(BUILD_DIR) && makepkg --printsrcinfo > $(SRC_INFO_FILE_NAME)
+
+prepare: pkgbuild $(SRC_INFO_FILE)
+prepare-git: pkgbuild-git $(SRC_INFO_FILE)
 prepare-test: pkgbuild-test
 
 build: prepare
@@ -70,8 +78,20 @@ build-git: prepare-git
 build-test: prepare-test
 	cd $(TEST_BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
+$(PREFIX):
+	mkdir -p $(PREFIX)
+
+install: $(PREFIX)
+	cp $(BUILD_DIR)/$(SRC_INFO_FILE_NAME) $(PREFIX)/
+	cp $(BUILD_DIR)/$(PKG_FILE) $(PREFIX)/
+	cp $(BUILD_DIR)/$(CHANGELOG) $(PREFIX)/
+
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(TEST_BUILD_DIR)
+	rm -rf $(PREFIX)
+
+list:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
 .PHONY: prepare-build-dir prepare-version prepare-commit prepare-test pkgbuild pkgbuild-git pkgbuild-test build build-git build-test clean all

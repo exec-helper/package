@@ -6,6 +6,7 @@ stages:
     - prepare
     - build
     - verify
+    - upload
 
 .enable_sudo_nobody: &enable_sudo_nobody
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
@@ -67,10 +68,13 @@ stages:
     variables:
         GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
         BUILD_DIR: pkgbuild/build_package
+        PACKAGE_DIR: package
     script:
         - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap
-        - namcap $BUILD_DIR/PKGBUILD
-        - namcap $BUILD_DIR/*.tar.xz
+        - make PREFIX=$(pwd)/${PACKAGE_DIR} install
+        - namcap ${PACKAGE_DIR}/PKGBUILD
+        - namcap ${PACKAGE_DIR}/.SRCINFO
+        - namcap ${BUILD_DIR}/*.tar.xz
 
 .pkgbuild:verify: &pkgbuild_verify
     stage: verify
@@ -83,6 +87,18 @@ stages:
         - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
         - exec-helper-integration-test
         - verification/run-examples.sh
+
+.pkgbuild:upload: &pkgbuild_upload
+    stage: upload
+    variables:
+        URL: INVALID_URL.git
+    script:
+        - git clone ${URL} repo
+        - rm -rf repo/*
+        - make PREFIX=$(pwd)/repo install
+        - git -C repo add .
+        - git -C repo commit -m "Automagically updated version from the CI system"
+        - git -C push
 
 pkgbuild:prepare:
     <<: *pkgbuild_prepare
@@ -179,6 +195,26 @@ arch-linux-git:verify:
     dependencies:
         - arch-linux-git:build
         - arch-linux-git:build-test
+
+arch-linux:upload:
+    <<: *pkgbuild_upload
+    image: dock0/arch
+    dependencies:
+        - arch-linux:prepare
+    variables:
+        URL: ssh://aur@aur.archlinux.org/exec-helper.git
+    only:
+        - master
+
+arch-linux-git:upload:
+    <<: *pkgbuild_upload
+    image: dock0/arch
+    dependencies:
+        - arch-linux-git:prepare
+    variables:
+        URL: ssh://aur@aur.archlinux.org/exec-helper-git.git
+    only:
+        - dev
 
 ############################################################################### dpkg  #############################################################
 
