@@ -1,17 +1,17 @@
 PREFIX:=package
 
-all: build
+all: prepare
 
 clean:
-	$(MAKE) -C pkgbuild clean
-	$(MAKE) -C dpkg clean
+	$(MAKE) --directory pkgbuild clean
+	$(MAKE) --directory dpkg clean
 
 # Package manager formats
 pkgbuild:
-	$(MAKE) -C pkgbuild $(TARGET) 
+	$(MAKE) --directory pkgbuild PREFIX=$(PREFIX) $(TARGET) 
 
 dpkg:
-	$(MAKE) -C dpkg $(TARGET)
+	$(MAKE) --directory dpkg PREFIX=$(PREFIX) $(TARGET)
 
 # Distribution to package manager mapping
 arch: pkgbuild
@@ -22,22 +22,10 @@ ubuntu: dpkg
 find-distribution:
 	$(MAKE) $(shell lsb_release --id --short | tr A-Z a-z) TARGET=$(TARGET) PREFIX=$(PREFIX)
 
-prepare:
-	$(MAKE) find-distribution TARGET=prepare
-
-prepare-git:
-	$(MAKE) find-distribution TARGET=prepare-git
-
-build:
-	$(MAKE) find-distribution TARGET=build
-
-build-test:
-	$(MAKE) find-distribution TARGET=build-test
-
-install:
-	$(MAKE) find-distribution TARGET=install PREFIX=$(PREFIX)
-
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
-.PHONY: pkgbuild dpkg pkgbuild-git arch arch-git debian ubuntu find-distribution list all
+%:
+	$(MAKE) find-distribution TARGET=$@ PREFIX=$(PREFIX)
+
+.PHONY: pkgbuild dpkg debian ubuntu find-distribution list all
