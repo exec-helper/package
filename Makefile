@@ -31,6 +31,9 @@ prepare-git:
 build:
 	$(MAKE) find-distribution TARGET=build
 
+build-test:
+	$(MAKE) find-distribution TARGET=build-test
+
 install:
 	$(MAKE) find-distribution TARGET=install
 
