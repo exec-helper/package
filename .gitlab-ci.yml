@@ -66,7 +66,6 @@ stages:
 .pkgbuild:analyze: &pkgbuild_analyze
     stage: verify
     variables:
-        GIT_STRATEGY: none                          # Disable git and only rely on the artifacts
         BUILD_DIR: pkgbuild/build_package
         PACKAGE_DIR: package
     script:
