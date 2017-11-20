@@ -6,7 +6,7 @@ SOURCES:=$(SOURCE_DIR)/$(SOURCE_FILES)
 
 VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
 DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
-VENDOR:=$(shell lsb_release --id --short)
+CODENAME:=$(shell lsb_release --codename --short)
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
 PREPARE_DIR=dpkg_prepare
@@ -23,7 +23,12 @@ GITCHANGELOG_RC_TEMP_TEMPLATE:=$(GITCHANGELOG_RC).tmp
 GITCHANGELOG_RC_TEMP:=$(shell mktemp --dry-run $(GITCHANGELOG_RC_TEMP_TEMPLATE).XXX)
 
 CONTROL_FILE:=debian/control
-CONTROL_IN:=debian/control_$(VENDOR).in
+
+CONTROL_IN:=debian/control.in
+# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
+ifeq ($(CODENAME),$(filter $(CODENAME),xenial yakkety zesty))
+CONTROL_IN:=debian/control_ubuntu_legacy.in
+endif
 
 RULES_FILE:=debian/rules
 RULES_IN:=debian/rules.in
@@ -84,7 +89,8 @@ $(PREPARE_DIR)/$(CONTROL_FILE): $(CONTROL_IN) $(PREPARE_DIR)
 
 $(PREPARE_DIR)/$(RULES_FILE): $(RULES_IN) $(PREPARE_DIR)
 	cp $(RULES_IN) $(PREPARE_DIR)/$(RULES_TEMP)
-ifeq ($(VENDOR),Ubuntu)
+	# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
+ifeq ($(CODENAME),$(filter $(CODENAME),xenial yakkety zesty))
 	echo "" >> $(PREPARE_DIR)/$(RULES_TEMP)
 	echo "override_dh_strip:" >> $(PREPARE_DIR)/$(RULES_TEMP)
 	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(PREPARE_DIR)/$(RULES_TEMP)
