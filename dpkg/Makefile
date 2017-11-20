@@ -6,6 +6,7 @@ SOURCES:=$(SOURCE_DIR)/$(SOURCE_FILES)
 
 VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
 DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
+VENDOR:=$(shell lsb_release --vendor --short)
 CODENAME:=$(shell lsb_release --codename --short)
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
@@ -57,10 +58,21 @@ PACKAGES = 	$(PROJECT_NAME)_$(VERSION).dsc \
 			$(SOURCE_ARCHIVE) \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes \
 			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).deb \
-			$(PROJECT_NAME)-docs_$(VERSION)_all.deb \
-			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
+			$(PROJECT_NAME)-docs_$(VERSION)_all.deb
 
-BUILD_INFO_FILE=$(PROJECT_NAME)_$(VERSION)*.buildinfo
+# Ubuntu handles debug packages differenty
+ifeq ($(VENDOR),$(filter $(VENDOR),Ubuntu))
+
+ifeq ($(CODENAME),$(filter $(CODENAME),xenial yakkety zesty))
+PACKAGES += $(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
+else
+PACKAGES += $(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).ddeb
+endif
+
+else
+PACKAGES += $(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
+PACKAGES += $(PROJECT_NAME)_$(VERSION)*.buildinfo
+endif
 
 CURDIR:=$(shell pwd)
 
@@ -133,9 +145,6 @@ build:: deploy-archives install-build-deps
 	cd $(BUILD_DIR) && dpkg-buildpackage -jauto -us -uc
 	mkdir -p $(PACKAGE_DIR)
 	cp $(PACKAGES) $(PACKAGE_DIR)/
-
-	# Some systems do not generate a build info file
-	test -f $(BUILD_INFO_FILE) && cp $(BUILD_INFO_FILE) $(PACKAGE_DIR)/ || true
 
 build-test:
 	$(MAKE) --directory test build
