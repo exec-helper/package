@@ -23,7 +23,12 @@ GITCHANGELOG_RC_TEMP_TEMPLATE:=$(GITCHANGELOG_RC).tmp
 GITCHANGELOG_RC_TEMP:=$(shell mktemp --dry-run $(GITCHANGELOG_RC_TEMP_TEMPLATE).XXX)
 
 CONTROL_FILE:=debian/control
-CONTROL_IN:=debian/control_$(VENDOR).in
+
+CONTROL_IN:=debian/control.in
+# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
+ifeq ($(DISTRIBUTION),$(filter $(DISTRIBUTION),xenial yakkety zesty))
+CONTROL_IN:=debian/control_ubuntu_legacy.in
+endif
 
 RULES_FILE:=debian/rules
 RULES_IN:=debian/rules.in
@@ -45,19 +50,8 @@ ifeq ($(ARCHITECTURE),x86_64)
 ARCHITECTURE:=amd64
 endif
 
-PACKAGE_DIR=../package
-			# Ubuntu generates .ddeb files for debug packages that are not called like the source name rather than a .deb file
-PACKAGES =	$(PROJECT_NAME)-test_$(VERSION)_$(ARCHITECTURE).deb \
-			$(PROJECT_NAME)-test-dbgsym_$(VERSION)_$(ARCHITECTURE).*deb
-
-SPURIOUS_PACKAGES = $(PROJECT_NAME)_$(VERSION).dsc \
-			$(PROJECT_NAME)_$(VERSION).debian.tar.xz \
-			$(SOURCE_ARCHIVE) \
-			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes \
-			$(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).*deb
-
-
-BUILD_INFO_FILE=$(PROJECT_NAME)-test_$(VERSION)*.buildinfo
+PACKAGE_DIR=package
+CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes
 
 CURDIR:=$(shell pwd)
 
@@ -86,7 +80,8 @@ $(PREPARE_DIR)/$(CONTROL_FILE): $(CONTROL_IN) $(PREPARE_DIR)
 
 $(PREPARE_DIR)/$(RULES_FILE): $(RULES_IN) $(PREPARE_DIR)
 	cp $(RULES_IN) $(PREPARE_DIR)/$(RULES_TEMP)
-ifeq ($(VENDOR),Ubuntu)
+	# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
+ifeq ($(DISTRIBUTION),$(filter $(DISTRIBUTION),xenial yakkety zesty))
 	echo "" >> $(PREPARE_DIR)/$(RULES_TEMP)
 	echo "override_dh_strip:" >> $(PREPARE_DIR)/$(RULES_TEMP)
 	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(PREPARE_DIR)/$(RULES_TEMP)
@@ -125,19 +120,17 @@ prepare:: $(DEBIAN_ARCHIVE) $(SOURCE_ARCHIVE)
 build:: deploy-archives install-build-deps
 	cd $(BUILD_DIR) && dpkg-buildpackage -jauto -us -uc
 	mkdir -p $(PACKAGE_DIR)
-	cp $(PACKAGES) $(PACKAGE_DIR)/
+	mv $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$" | sed 's/.* //' | xargs) $(PACKAGE_DIR)/
+	mv $(CHANGES_FILE) $(PACKAGE_DIR)/
 
-	# Some systems do not generate a build info file
-	test -f $(BUILD_INFO_FILE) && cp $(BUILD_INFO_FILE) $(PACKAGE_DIR)/ || true
 
 clean:
 	rm -f $(DEBIAN_ARCHIVE)
 	rm -f $(SOURCE_ARCHIVE)
 	rm -f $(BUILD_DEPS_PACKAGE)
-	rm -f $(PACKAGES)
-	rm -f $(SPURIOUS_PACKAGES)
 	rm -rf $(PREPARE_DIR)
 	rm -rf $(BUILD_DIR)
+	rm -rf $(PACKAGE_DIR)
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'

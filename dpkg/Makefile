@@ -6,8 +6,7 @@ SOURCES:=$(SOURCE_DIR)/$(SOURCE_FILES)
 
 VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
 DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
-VENDOR:=$(shell lsb_release --vendor --short)
-CODENAME:=$(shell lsb_release --codename --short)
+VENDOR:=$(shell lsb_release --id --short)
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
 PREPARE_DIR=dpkg_prepare
@@ -27,7 +26,7 @@ CONTROL_FILE:=debian/control
 
 CONTROL_IN:=debian/control.in
 # Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
-ifeq ($(CODENAME),$(filter $(CODENAME),xenial yakkety zesty))
+ifeq ($(DISTRIBUTION),$(filter $(DISTRIBUTION),xenial yakkety zesty))
 CONTROL_IN:=debian/control_ubuntu_legacy.in
 endif
 
@@ -52,27 +51,7 @@ ARCHITECTURE:=amd64
 endif
 
 PACKAGE_DIR=package
-			# Ubuntu generates .ddeb files for debug packages that are not called like the source name rather than a .deb file
-PACKAGES = 	$(PROJECT_NAME)_$(VERSION).dsc \
-			$(PROJECT_NAME)_$(VERSION).debian.tar.xz \
-			$(SOURCE_ARCHIVE) \
-			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes \
-			$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).deb \
-			$(PROJECT_NAME)-docs_$(VERSION)_all.deb
-
-# Ubuntu handles debug packages differenty
-ifeq ($(VENDOR),$(filter $(VENDOR),Ubuntu))
-
-ifeq ($(CODENAME),$(filter $(CODENAME),xenial yakkety zesty))
-PACKAGES += $(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
-else
-PACKAGES += $(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).ddeb
-endif
-
-else
-PACKAGES += $(PROJECT_NAME)-dbgsym_$(VERSION)_$(ARCHITECTURE).deb
-PACKAGES += $(PROJECT_NAME)_$(VERSION)*.buildinfo
-endif
+CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes
 
 CURDIR:=$(shell pwd)
 
@@ -102,7 +81,7 @@ $(PREPARE_DIR)/$(CONTROL_FILE): $(CONTROL_IN) $(PREPARE_DIR)
 $(PREPARE_DIR)/$(RULES_FILE): $(RULES_IN) $(PREPARE_DIR)
 	cp $(RULES_IN) $(PREPARE_DIR)/$(RULES_TEMP)
 	# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
-ifeq ($(CODENAME),$(filter $(CODENAME),xenial yakkety zesty))
+ifeq ($(DISTRIBUTION),$(filter $(DISTRIBUTION),xenial yakkety zesty))
 	echo "" >> $(PREPARE_DIR)/$(RULES_TEMP)
 	echo "override_dh_strip:" >> $(PREPARE_DIR)/$(RULES_TEMP)
 	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(PREPARE_DIR)/$(RULES_TEMP)
@@ -144,7 +123,8 @@ prepare-test:
 build:: deploy-archives install-build-deps
 	cd $(BUILD_DIR) && dpkg-buildpackage -jauto -us -uc
 	mkdir -p $(PACKAGE_DIR)
-	cp $(PACKAGES) $(PACKAGE_DIR)/
+	mv $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$" | sed 's/.* //' | xargs) $(PACKAGE_DIR)/
+	mv $(CHANGES_FILE) $(PACKAGE_DIR)/
 
 build-test:
 	$(MAKE) --directory test build
@@ -153,7 +133,6 @@ clean:
 	rm -f $(DEBIAN_ARCHIVE)
 	rm -f $(SOURCE_ARCHIVE)
 	rm -f $(BUILD_DEPS_PACKAGE)
-	rm -f $(PACKAGES)
 	rm -rf $(PREPARE_DIR)
 	rm -rf $(BUILD_DIR)
 	rm -rf $(PACKAGE_DIR)
