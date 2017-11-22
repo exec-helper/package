@@ -123,7 +123,7 @@ prepare-test:
 build:: deploy-archives install-build-deps
 	cd $(BUILD_DIR) && dpkg-buildpackage -jauto -us -uc
 	mkdir -p $(PACKAGE_DIR)
-	mv $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$" | sed 's/.* //' | xargs) $(PACKAGE_DIR)/
+	mv $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(PACKAGE_DIR)/
 	mv $(CHANGES_FILE) $(PACKAGE_DIR)/
 
 build-test:

@@ -50,7 +50,7 @@ ifeq ($(ARCHITECTURE),x86_64)
 ARCHITECTURE:=amd64
 endif
 
-PACKAGE_DIR=package
+PACKAGE_DIR=../package
 CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_$(ARCHITECTURE).changes
 
 CURDIR:=$(shell pwd)

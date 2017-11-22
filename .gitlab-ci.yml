@@ -18,7 +18,7 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
         - exec-helper/gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - pip install gitchangelog
         - *enable_sudo_nobody
@@ -50,7 +50,7 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_test
     script: 
-        - pacman -Sy --noconfirm --needed sudo base-devel
+        - pacman -Sy --noconfirm --needed sudo base-devel lsb-release
         - exec-helper/gitlab/install-aur.sh libcatch-cpp-headers         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - exec-helper/gitlab/install-aur.sh microsoft-gsl-git            # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - pacman -S --noconfirm --needed lsb-release namcap
@@ -69,7 +69,7 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         PACKAGE_DIR: package
     script:
-        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make
+        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
         - make PREFIX=$(pwd)/${PACKAGE_DIR} install
         - namcap ${PACKAGE_DIR}/PKGBUILD
         - namcap ${PACKAGE_DIR}/.SRCINFO
@@ -83,7 +83,7 @@ stages:
     script:
         - pacman -Sy
         - pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
-        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind
+        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
         - exec-helper-integration-test
         - verification/run-examples.sh
 
@@ -158,12 +158,14 @@ pkgbuild:analyze:
     <<: *pkgbuild_analyze
     image: dock0/arch
     dependencies:
+        - pkgbuild:prepare
         - pkgbuild:build
 
 arch-linux:analyze:
     <<: *pkgbuild_analyze
     image: dock0/arch
     dependencies:
+        - arch-linux:prepare
         - arch-linux:build
     only:
         - master
@@ -172,6 +174,7 @@ arch-linux-git:analyze:
     <<: *pkgbuild_analyze
     image: dock0/arch
     dependencies:
+        - arch-linux-git:prepare
         - arch-linux-git:build
 
 pkgbuild:verify:
