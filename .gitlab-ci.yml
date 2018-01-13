@@ -50,7 +50,7 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_test
     script: 
-        - pacman -Sy --noconfirm --needed sudo base-devel lsb-release
+        - pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake
         - sed -i 's/CXXFLAGS="/CXXFLAGS="-Wno-maybe-uninitialized /' /etc/makepkg.conf # Hack for making catch-git build
         - gitlab/install-aur.sh catch-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - gitlab/install-aur.sh microsoft-gsl-git            # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically

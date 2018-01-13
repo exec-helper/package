@@ -26,7 +26,7 @@ sudo -u nobody curl -L -O ${PACKAGE_URL}
 sudo -u nobody tar -xf ${PACKAGE_ARCHIVE}
 
 pushd ${PACKAGE}
-sudo -u nobody makepkg --syncdeps
+sudo -u nobody makepkg
 pacman --noconfirm -U ${PACKAGE}*.tar.xz
 popd
 
