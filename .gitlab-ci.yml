@@ -12,7 +12,6 @@ stages:
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
 
 .enable_private_keys: &enable_private_keys
-before_script:
   ## Install ssh-agent if not already installed
   - 'which ssh-agent || pacman -S openssh'
 
@@ -114,14 +113,14 @@ before_script:
     variables:
         URL: INVALID_URL.git
     before_script:
-        <<: *enable_private_keys
+        *enable_private_keys
     script:
         - git clone ${URL} repo
         - rm -rf repo/*
         - make PREFIX=$(pwd)/repo install
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
-        - [ git diff-index --quiet HEAD -- ] || git -C repo commit -m "Updated exec-helper-git package to exec-helper commit ${EXEC_HELPER_HASH}"
+        - '[ git diff-index --quiet HEAD -- ] || git -C repo commit -m "Updated exec-helper-git package to exec-helper commit ${EXEC_HELPER_HASH}"'
         - git -C push
 
 pkgbuild:prepare:
