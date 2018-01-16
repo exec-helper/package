@@ -18,12 +18,17 @@ source_directory=$(CURDIR)
 build_directory=build
 prefix = $(CURDIR)/debian/tmp
 
+system_description := $(shell lsb_release --description --short)
+source_version := $(shell git -C ${source_directory}/../../exec-helper describe --long --dirty)
+version := "(${system_description}) ${source_version}"
+copyright := "Copyright (c) $(shell date +'%Y') Bart Verhagen"
+
 # main packaging script based on dh7 syntax
 %:
 	dh $@ --sourcedirectory=${source_directory} --builddirectory=${build_directory} --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)/usr
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DCMAKE_INSTALL_PREFIX=$(prefix)/usr -DENABLE_WERROR=OFF -DVERSION=${version} -DCOPYRIGHT=${copyright}
 
 override_dh_auto_build-indep:
 	dh_auto_build -- docs-html
