@@ -11,25 +11,30 @@ stages:
 .enable_sudo_nobody: &enable_sudo_nobody
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
 
+## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
-  ## Install ssh-agent if not already installed
-  - 'which ssh-agent || pacman -Sy --noconfirm --needed openssh'
-
-  ## Run ssh-agent
-  - eval $(ssh-agent -s)
-
-  ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
-  ## We're using tr to fix line endings which makes ed25519 keys work without extra base64 encoding. (https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556)
-  ##
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-
-  ## Create the SSH directory and give it the right permissions
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-
-  ## Set the user name and and email for git commands
-  - git config --global user.email "unknown@unknown.com"
-  - git config --global user.name "Gitlab CI Runner"
+    ## Install ssh-agent if not already installed
+    - 'which ssh-agent || pacman -Sy --noconfirm --needed openssh'
+  
+    ## Run ssh-agent
+    - eval $(ssh-agent -s)
+  
+    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+    ## We're using tr to fix line endings which makes ed25519 keys work without extra base64 encoding. (https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556)
+    ##
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  
+    ## Create the SSH directory and give it the right permissions
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+  
+    ## Set the user name and and email for git commands
+    - git config --global user.email "unknown@unknown.com"
+    - git config --global user.name "Gitlab CI Runner"
+  
+    ## Set known hosts using the configurable SSH_KNOWN_HOSTS variable
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
 
 ############################################################################### PKGBUILD #############################################################
 
@@ -115,6 +120,7 @@ stages:
     before_script:
         *enable_private_keys
     script:
+        - echo "Cloning ${URL}..."
         - git clone ${URL} repo
         - rm -rf repo/*
         - make PREFIX=$(pwd)/repo install
