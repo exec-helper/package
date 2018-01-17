@@ -127,8 +127,8 @@ stages:
         - make PREFIX=$(pwd)/repo install
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
-        - '[ git diff-index --quiet HEAD -- ] || git -C repo commit -m "Updated exec-helper-git package to exec-helper commit ${EXEC_HELPER_HASH}"'
-        - git -C push
+        - '[ `git -C repo diff-index --quiet HEAD --` ] || git -C repo commit -m "Updated exec-helper-git package to exec-helper commit ${EXEC_HELPER_HASH}"'
+        - git -C repo push
 
 pkgbuild:prepare:
     <<: *pkgbuild_prepare
