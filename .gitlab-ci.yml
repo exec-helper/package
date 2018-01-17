@@ -123,6 +123,7 @@ stages:
         - echo "Cloning ${URL}..."
         - git clone ${URL} repo
         - rm -rf repo/*
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
         - make PREFIX=$(pwd)/repo install
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
