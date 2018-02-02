@@ -1,0 +1,44 @@
+Source: exec-helper
+Maintainer: bverhagen <barrie.verhagen@gmail.com>
+Section: misc
+Priority: optional
+Build-Depends: 
+    debhelper (>= 9),
+    cmake,
+    libboost-program-options-dev,
+    libboost-filesystem-dev,
+    libboost-log-dev,
+    libyaml-cpp-dev (>= 0.5.2),
+    doxygen,
+    git,
+    pkg-config,
+    doxygen,
+    graphviz,
+    pkg-create-dbgsym,
+    catch
+Standards-Version: 4.1.0
+Homepage: https://github.com/bverhagen/exec-helper
+Vcs-Browser: https://github.com/bverhagen/exec-helper
+Vcs-Git: https://github.com/bverhagen/exec-helper.git
+
+Package: exec-helper-test
+Architecture: any
+Section: devel
+Priority: optional
+Depends:
+    exec-helper,
+    ${shlibs:Depends},
+    ${misc:Depends}
+Description: Tests for exec-helper. Mainly useful for development purposes
+ This package contains the unittests and integration tests for exec-helper.
+ This package is mainly a development/CI tool.
+
+Package: exec-helper-dbgsym
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    exec-helper-test (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for exec-helper-test
+ This package contains the debugging symbols for exec-helper-test.

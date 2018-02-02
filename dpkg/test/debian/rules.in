@@ -1,0 +1,50 @@
+#!/usr/bin/make -f
+# output every command that modifies files on the build system.
+#DH_VERBOSE = 1
+
+# see EXAMPLES in dpkg-buildflags(1) and read /usr/share/dpkg/*
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+# see FEATURE AREAS in dpkg-buildflags(1)
+#export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# see ENVIRONMENT in dpkg-buildflags(1)
+# package maintainers to append CFLAGS
+#export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+# package maintainers to append LDFLAGS
+#export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+source_directory=$(CURDIR)
+build_directory=build-test
+prefix = $(CURDIR)/debian/tmp
+
+system_description := $(shell lsb_release --description --short)
+source_version := $(shell git -C ${source_directory}/../../exec-helper describe --long --dirty)
+version := "(${system_description}) ${source_version}"
+copyright := "Copyright (c) $(shell date +'%Y') Bart Verhagen"
+
+# main packaging script based on dh7 syntax
+%:
+	dh $@ --sourcedirectory=${source_directory} --builddirectory=${build_directory} --parallel
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=ON -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON -DENABLE_TESTING=ON -DCMAKE_INSTALL_PREFIX=$(prefix)/usr -DENABLE_WERROR=OFF -DVERSION=${version} -DCOPYRIGHT=${copyright}
+
+override_dh_auto_build-indep:
+	dh_auto_build -- docs-man-integration
+
+override_dh_auto_build-dep:
+	dh_auto_build -- integration
+
+override_dh_auto_build: override_dh_auto_build-indep override_dh_auto_build-dep
+
+override_dh_auto_test:
+	# No tests
+	
+override_dh_auto_install-dep:
+	cmake -DCOMPONENT=integration -P "${build_directory}/cmake_install.cmake"
+
+override_dh_auto_install-indep:
+	cmake -DCOMPONENT=integration -P "${build_directory}/cmake_install.cmake"
+
+override_dh_auto_install: override_dh_auto_install-dep override_dh_auto_install-indep

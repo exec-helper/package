@@ -1,0 +1,33 @@
+Source: exec-helper
+Maintainer: bverhagen <barrie.verhagen@gmail.com>
+Section: misc
+Priority: optional
+Build-Depends: 
+    debhelper (>= 9),
+    cmake,
+    libboost-program-options-dev,
+    libboost-filesystem-dev,
+    libboost-log-dev,
+    libyaml-cpp-dev (>= 0.5.2),
+    doxygen,
+    git,
+    doxygen,
+    graphviz,
+    pkg-config,
+    catch
+Standards-Version: 4.1.0
+Homepage: https://github.com/bverhagen/exec-helper
+Vcs-Browser: https://github.com/bverhagen/exec-helper
+Vcs-Git: https://github.com/bverhagen/exec-helper.git
+
+Package: exec-helper-test
+Architecture: any
+Section: devel
+Priority: optional
+Depends:
+    exec-helper,
+    ${shlibs:Depends},
+    ${misc:Depends}
+Description: Tests for exec-helper. Mainly useful for development purposes
+ This package contains the unittests and integration tests for exec-helper.
+ This package is mainly a development/CI tool.

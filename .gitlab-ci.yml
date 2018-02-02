@@ -1,40 +1,456 @@
 image: dock0/arch
-
-before_script:
-    - pacman -Sy --noconfirm
+variables:
+      GIT_SUBMODULE_STRATEGY: recursive
 
 stages:
+    - prepare
     - build
-    - analyze
     - verify
+    - upload
 
-pkgbuild:build:
-    stage: build
-    script: 
-        - pacman -S --noconfirm --needed base-devel
-        - echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
-        - cd pkgbuild
-        - sudo -u nobody makepkg -s --noconfirm --needed
+.enable_sudo_nobody: &enable_sudo_nobody
+        echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
+
+## This activates the use of the configured private keys in a build pipeline.
+.enable_private_keys: &enable_private_keys
+    ## Install ssh-agent if not already installed
+    - 'which ssh-agent || pacman -Sy --noconfirm --needed openssh'
+  
+    ## Run ssh-agent
+    - eval $(ssh-agent -s)
+  
+    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+    ## We're using tr to fix line endings which makes ed25519 keys work without extra base64 encoding. (https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556)
+    ##
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  
+    ## Create the SSH directory and give it the right permissions
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+  
+    ## Set the user name and and email for git commands
+    - git config --global user.email "unknown@unknown.com"
+    - git config --global user.name "Gitlab CI Runner"
+  
+    ## Set known hosts using the configurable SSH_KNOWN_HOSTS variable
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+############################################################################### PKGBUILD #############################################################
+
+.pkgbuild:prepare: &pkgbuild_prepare
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
+    script:
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
+        - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
+        - pip install gitchangelog
+        - *enable_sudo_nobody
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/*.tar.xz
+            - pkgbuild/build_package/*
+
+.pkgbuild:build: &pkgbuild_build
+    stage: build
+    variables:
+        BUILD_DIR: pkgbuild/build_package
+    script: 
+        - pacman -Sy --noconfirm --needed base-devel sudo lsb-release
+        - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
+        - *enable_sudo_nobody
+        - cd $BUILD_DIR
+        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - $BUILD_DIR/PKGBUILD
+            - $BUILD_DIR/*.tar.xz
+
+.pkgbuild:build-test: &pkgbuild_build_test
+    stage: build
+    variables:
+        BUILD_DIR: pkgbuild/build_test
+    script: 
+        - pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake
+        - sed -i 's/CXXFLAGS="/CXXFLAGS="-Wno-maybe-uninitialized /' /etc/makepkg.conf # Hack for making catch-git build
+        - gitlab/install-aur.sh catch-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
+        - gitlab/install-aur.sh microsoft-gsl-git            # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
+        - pacman -S --noconfirm --needed lsb-release namcap
+        - *enable_sudo_nobody
+        - sudo -u nobody make build-test
+        - namcap $BUILD_DIR/PKGBUILD
+        - namcap $BUILD_DIR/*.tar.xz
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - $BUILD_DIR/*.tar.xz
+
+.pkgbuild:analyze: &pkgbuild_analyze
+    stage: verify
+    variables:
+        BUILD_DIR: pkgbuild/build_package
+        PACKAGE_DIR: package
+    script:
+        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
+        - make PREFIX=$(pwd)/${PACKAGE_DIR} install
+        - namcap ${PACKAGE_DIR}/PKGBUILD
+        - namcap ${PACKAGE_DIR}/.SRCINFO
+        - namcap ${BUILD_DIR}/*.tar.xz
+
+.pkgbuild:verify: &pkgbuild_verify
+    stage: verify
+    variables:
+        BUILD_DIR: pkgbuild/build_package
+        TEST_BUILD_DIR: pkgbuild/build_test
+    script:
+        - pacman -Sy
+        - pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
+        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
+        - exec-helper-integration-test
+        - verification/run-examples.sh
+
+.pkgbuild:upload: &pkgbuild_upload
+    stage: upload
+    variables:
+        URL: INVALID_URL.git
+    before_script:
+        *enable_private_keys
+    script:
+        - echo "Cloning ${URL}..."
+        - git clone ${URL} repo
+        - rm -rf repo/*
+        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
+        - make PREFIX=$(pwd)/repo install
+        - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
+        - git -C repo add .
+        - '[ `git -C repo diff-index --quiet HEAD --` ] || git -C repo commit -m "Updated exec-helper-git package to exec-helper commit ${EXEC_HELPER_HASH}"'
+        - git -C repo push
+
+pkgbuild:prepare:
+    <<: *pkgbuild_prepare
+    image: dock0/arch
+    variables:
+        MAKE_TARGETS: pkgbuild TARGET=prepare
+
+arch-linux:prepare:
+    <<: *pkgbuild_prepare
+    image: dock0/arch
+    only:
+        - master
+
+arch-linux-git:prepare:
+    <<: *pkgbuild_prepare
+    image: dock0/arch
+    variables:
+        MAKE_TARGETS: prepare-git
+
+pkgbuild:build:
+    <<: *pkgbuild_build
+    image: dock0/arch
+    dependencies:
+        - pkgbuild:prepare
+
+arch-linux:build:
+    <<: *pkgbuild_build
+    image: dock0/arch
+    dependencies:
+        - arch-linux:prepare
+    only:
+        - master
+
+arch-linux-git:build:
+    <<: *pkgbuild_build
+    image: dock0/arch
+    dependencies:
+        - arch-linux-git:prepare
+
+pkgbuild:build-test:
+    <<: *pkgbuild_build_test
+    image: dock0/arch
+    dependencies: []
+
+arch-linux:build-test:
+    <<: *pkgbuild_build_test
+    image: dock0/arch
+    dependencies: []
+    only:
+        - master
+
+arch-linux-git:build-test:
+    <<: *pkgbuild_build_test
+    image: dock0/arch
+    dependencies: []
 
 pkgbuild:analyze:
-    stage: analyze
+    <<: *pkgbuild_analyze
+    image: dock0/arch
     dependencies:
+        - pkgbuild:prepare
         - pkgbuild:build
-    script:
-        - pacman -S --noconfirm --needed namcap
-        - cd pkgbuild
-        - namcap PKGBUILD
-        - namcap *.tar.xz
+
+arch-linux:analyze:
+    <<: *pkgbuild_analyze
+    image: dock0/arch
+    dependencies:
+        - arch-linux:prepare
+        - arch-linux:build
+    only:
+        - master
+
+arch-linux-git:analyze:
+    <<: *pkgbuild_analyze
+    image: dock0/arch
+    dependencies:
+        - arch-linux-git:prepare
+        - arch-linux-git:build
 
 pkgbuild:verify:
-    stage: verify
+    <<: *pkgbuild_verify
+    image: dock0/arch
     dependencies:
         - pkgbuild:build
+        - pkgbuild:build-test
+
+arch-linux:verify:
+    <<: *pkgbuild_verify
+    image: dock0/arch
+    dependencies:
+        - arch-linux:build
+        - arch-linux:build-test
+    only:
+        - master
+
+arch-linux-git:verify:
+    <<: *pkgbuild_verify
+    image: dock0/arch
+    dependencies:
+        - arch-linux-git:build
+        - arch-linux-git:build-test
+
+arch-linux:upload:
+    <<: *pkgbuild_upload
+    image: dock0/arch
+    dependencies:
+        - arch-linux:prepare
+    variables:
+        URL: ssh://aur@aur.archlinux.org/exec-helper.git
+    only:
+        - master
+
+arch-linux-git:upload:
+    <<: *pkgbuild_upload
+    image: dock0/arch
+    dependencies:
+        - arch-linux-git:prepare
+    variables:
+        URL: ssh://aur@aur.archlinux.org/exec-helper-git.git
+    only:
+        - dev
+
+############################################################################### dpkg  #############################################################
+
+.dpkg:prepare: &dpkg_prepare
+    stage: prepare
+    variables:
+        MAKE_TARGETS: prepare
     script:
-        - pacman --needed --noconfirm -U pkgbuild/*.tar.xz
-        - git submodule update --init
-        - exec-helper --settings-file exec-helper/src/plugins/examples/command-line-command.example example
+        - apt-get update
+        - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils python-pip
+        - pip install gitchangelog mako
+        - *enable_sudo_nobody
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - dpkg/Makefile
+            - dpkg/*.tar.xz
+
+.dpkg:build: &dpkg_build
+    stage: build
+    variables:
+        MAKE_TARGETS: build
+        ADDITIONAL_BUILD_DEPENDENCIES: ""
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - pip install gitchangelog mako
+        - *enable_sudo_nobody
+        - echo Making targets=${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - "dpkg/package/*"
+
+.dpkg:build-test: &dpkg_build_test
+    stage: build
+    variables:
+        MAKE_TARGETS: build-test
+        ADDITIONAL_BUILD_DEPENDENCIES: ""
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - pip install gitchangelog mako
+        - *enable_sudo_nobody
+        - echo Making targets= ${MAKE_TARGETS}
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - "dpkg/package/*"
+
+.dpkg:analyze: &dpkg_analyze
+    stage: verify
+    variables:
+        LINTIAN_ARGS: "--no-cfg"
+    script:
+        - apt-get update
+        - apt-get install --assume-yes lintian
+        - cd dpkg/package
+        - lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb
+
+.dpkg:verify: &dpkg_verify
+    stage: verify
+    script:
+        - apt-get update
+        - dpkg -i dpkg/package/*.deb || true
+        - apt --fix-broken --yes install
+        - dpkg -i dpkg/package/*.deb
+        - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
+        - exec-helper-integration-test
+        - verification/run-examples.sh
+
+dpkg:prepare:
+    <<: *dpkg_prepare
+    image: debian:testing
+    variables:
+        MAKE_TARGETS: dpkg TARGET=prepare
+
+debian-testing:prepare:
+    <<: *dpkg_prepare
+    image: debian:testing
+
+ubuntu-xenial:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:xenial
+
+ubuntu-rolling:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:rolling
+
+dpkg:build:
+    <<: *dpkg_build
+    image: debian:testing
+    dependencies:
+        - dpkg:prepare
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build
+
+debian-testing:build:
+    <<: *dpkg_build
+    image: debian:testing
+    dependencies:
+        - debian-testing:prepare
+
+ubuntu-xenial:build:
+    variables:
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
+    <<: *dpkg_build
+    image: ubuntu:xenial
+    dependencies:
+        - ubuntu-xenial:prepare
+
+ubuntu-rolling:build:
+    <<: *dpkg_build
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:prepare
+
+dpkg:build-test:
+    <<: *dpkg_build_test
+    image: debian:testing
+    dependencies: []
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build-test
+
+debian-testing:build-test:
+    <<: *dpkg_build_test
+    image: debian:testing
+    dependencies: []
+    variables:
+        MAKE_TARGETS: dpkg TARGET=build-test
+
+ubuntu-xenial:build-test:
+    variables:
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
+    <<: *dpkg_build_test
+    image: ubuntu:xenial
+    dependencies: []
+
+ubuntu-rolling:build-test:
+    <<: *dpkg_build_test
+    image: ubuntu:rolling
+    dependencies: []
+
+dpkg:analyze:
+    <<: *dpkg_analyze
+    image: debian:testing
+    dependencies:
+        - dpkg:prepare
+        - dpkg:build
+
+debian-testing:analyze:
+    <<: *dpkg_analyze
+    image: debian:testing
+    dependencies:
+        - debian-testing:prepare
+        - debian-testing:build
+
+ubuntu-xenial:analyze:
+    <<: *dpkg_analyze
+    image: ubuntu:xenial
+    variables:
+        LINTIAN_ARGS: "--fail-on-warnings"
+    dependencies:
+        - ubuntu-xenial:prepare
+        - ubuntu-xenial:build
+
+ubuntu-rolling:analyze:
+    <<: *dpkg_analyze
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:prepare
+        - ubuntu-rolling:build
+
+dpkg:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    dependencies:
+        - dpkg:build
+        - dpkg:build-test
+
+debian-testing:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    dependencies:
+        - debian-testing:build
+        - debian-testing:build-test
+
+ubuntu-xenial:verify:
+    <<: *dpkg_verify
+    image: ubuntu:xenial
+    dependencies:
+        - ubuntu-xenial:build
+        - ubuntu-xenial:build-test
+
+ubuntu-rolling:verify:
+    <<: *dpkg_verify
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:build
+        - ubuntu-rolling:build-test

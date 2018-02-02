@@ -1,4 +1,14 @@
-pkg/
-src/
-*.tar.xz
-arch-linux/exec-helper/
+# PKGBUILD specific ignores
+pkgbuild/build_package
+pkgbuild/build_test
+
+# DPKG specific ignores
+dpkg/**/dpkg_prepare
+dpkg/**/dpkg_build
+dpkg/**/*.dsc
+dpkg/**/*.tar.xz
+dpkg/**/*.changes
+dpkg/**/*.deb
+dpkg/**/*.ddeb
+dpkg/**/*.buildinfo
+dpkg/package
