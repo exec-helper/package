@@ -4,7 +4,7 @@ SOURCE_DIR:=../$(PROJECT_NAME)
 SOURCE_FILES:=CMakeLists.txt
 SOURCES:=$(SOURCE_DIR)/$(SOURCE_FILES)
 
-VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
+VERSION:=$(shell git -C $(SOURCE_DIR) describe --exact-match "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
 DPKG_VERSION:=$(shell echo "$(VERSION)" | sed 's/-[^-]*//2g')
 VENDOR:=$(shell lsb_release --id --short)
 DISTRIBUTION:=$(shell lsb_release --codename --short)
