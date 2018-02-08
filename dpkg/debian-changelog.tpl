@@ -1,6 +1,6 @@
 % for version in data["versions"]:
 <%
-_version = version["tag"] if version["tag"] else opts["unreleased_version_label"]
+_version = version["tag"] + "-0" if version["tag"] else opts["unreleased_version_label"]
 title = "%s (%s) %s; urgency=%s" % ('exec-helper', _version, '@DISTRIBUTION@', 'low')
 
 nb_sections = len(version["sections"])
