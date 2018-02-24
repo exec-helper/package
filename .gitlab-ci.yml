@@ -276,7 +276,7 @@ arch-linux-git:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev (>= 0.5.2) doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - pip install gitchangelog mako
         - *enable_sudo_nobody
         - echo Making targets=${MAKE_TARGETS}
