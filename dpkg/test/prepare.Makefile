@@ -83,7 +83,7 @@ $(DEBIAN_ARCHIVE): $(PREPARE_DIR)/$(CONTROL_FILE) $(PREPARE_DIR)/$(CHANGELOG_FIL
 
 # Unfortunately, this had to become a PHONY target in order to be able to read the version at runtime
 archive_source: $(DEBIAN_ARCHIVE) $(SOURCES)
-	$(eval VERSION := $(patsubst %-0,%,$(shell dpkg-parsechangelog --file=$(PREPARE_DIR)/$(CHANGELOG_FILE) -S version)))
+	$(eval VERSION := $(patsubst %-1,%,$(shell dpkg-parsechangelog --file=$(PREPARE_DIR)/$(CHANGELOG_FILE) -S version)))
 	$(eval SOURCE_ARCHIVE := $(PROJECT_NAME)_$(VERSION).orig.tar.xz)
 	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
 
