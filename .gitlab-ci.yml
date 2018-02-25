@@ -368,9 +368,6 @@ ubuntu-xenial:build:
 
 ubuntu-rolling:build:
     <<: *dpkg_build
-    variables:
-        MAKE_TARGETS: build
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     image: ubuntu:rolling
     dependencies:
         - ubuntu-rolling:prepare
@@ -400,9 +397,6 @@ ubuntu-xenial:build-test:
 ubuntu-rolling:build-test:
     <<: *dpkg_build_test
     image: ubuntu:rolling
-    variables:
-        MAKE_TARGETS: build-test
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     dependencies: []
 
 dpkg:analyze:
