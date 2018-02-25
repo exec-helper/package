@@ -301,7 +301,7 @@ arch-linux-git:upload:
     artifacts:
         expire_in: 1 day
         paths:
-            - "dpkg/package/*"
+            - "dpkg/test/package/*"
 
 .dpkg:analyze: &dpkg_analyze
     stage: verify
@@ -317,9 +317,9 @@ arch-linux-git:upload:
     stage: verify
     script:
         - apt-get update
-        - dpkg -i dpkg/package/*.deb || true
+        - dpkg -i dpkg/package/*.deb dpkg/test/package/*.deb || true
         - apt --fix-broken --yes install
-        - dpkg -i dpkg/package/*.deb
+        - dpkg -i dpkg/package/*.deb dpkg/test/package/*.deb
         - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
         - exec-helper-integration-test
         - verification/run-examples.sh
@@ -365,6 +365,8 @@ ubuntu-xenial:build:
         - ubuntu-xenial:prepare
 
 ubuntu-rolling:build:
+    variables:
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build
     image: ubuntu:rolling
     dependencies:
@@ -392,6 +394,8 @@ ubuntu-xenial:build-test:
     dependencies: []
 
 ubuntu-rolling:build-test:
+    variables:
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build_test
     image: ubuntu:rolling
     dependencies: []
