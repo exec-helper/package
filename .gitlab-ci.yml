@@ -358,17 +358,19 @@ debian-testing:build:
         - debian-testing:prepare
 
 ubuntu-xenial:build:
-    variables:
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build
     image: ubuntu:xenial
+    variables:
+        MAKE_TARGETS: build
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     dependencies:
         - ubuntu-xenial:prepare
 
 ubuntu-rolling:build:
-    variables:
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build
+    variables:
+        MAKE_TARGETS: build
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     image: ubuntu:rolling
     dependencies:
         - ubuntu-rolling:prepare
@@ -388,17 +390,19 @@ debian-testing:build-test:
         MAKE_TARGETS: dpkg TARGET=build-test
 
 ubuntu-xenial:build-test:
-    variables:
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build_test
     image: ubuntu:xenial
+    variables:
+        MAKE_TARGETS: build-test
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     dependencies: []
 
 ubuntu-rolling:build-test:
-    variables:
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     <<: *dpkg_build_test
     image: ubuntu:rolling
+    variables:
+        MAKE_TARGETS: build-test
+        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     dependencies: []
 
 dpkg:analyze:
