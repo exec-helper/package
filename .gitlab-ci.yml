@@ -1,4 +1,4 @@
-image: base/archlinux
+image: bverhagen/pacman-aur-wrapper
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
@@ -14,7 +14,7 @@ stages:
 ## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
     ## Install ssh-agent if not already installed
-    - 'which ssh-agent || pacman -Sy --noconfirm --needed openssh'
+    - 'which ssh-agent || sudo pacman -Sy --noconfirm --needed openssh'
   
     ## Run ssh-agent
     - eval $(ssh-agent -s)
@@ -43,12 +43,11 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
-        - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
+        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
+        - yay -S microsoft-gsl-git
         - pip install gitchangelog
-        - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
-        - sudo -u nobody make ${MAKE_TARGETS}
+        - make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
@@ -59,12 +58,10 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_package
     script: 
-        - pacman -Sy --noconfirm --needed base-devel sudo lsb-release
-        - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - *enable_sudo_nobody
+        - sudo pacman -Sy --noconfirm --needed base-devel sudo lsb-release
+        - yay -S microsoft-gsl-git
         - cd $BUILD_DIR
-        - sudo chmod 777 .
-        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
+        - makepkg --noconfirm --needed --syncdeps --force
     artifacts:
         expire_in: 1 day
         paths:
@@ -76,12 +73,9 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_test
     script: 
-        - pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake
-        - gitlab/install-aur.sh catch2         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - gitlab/install-aur.sh microsoft-gsl-git            # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - pacman -S --noconfirm --needed lsb-release namcap
-        - *enable_sudo_nobody
-        - sudo -u nobody make build-test
+        - sudo pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake catch2 lsb-release namcap
+        - yay -S microsoft-gsl-git
+        - make build-test
         - namcap $BUILD_DIR/PKGBUILD
         - namcap $BUILD_DIR/*.tar.xz
     artifacts:
@@ -95,7 +89,7 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         PACKAGE_DIR: package
     script:
-        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
+        - sudo pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
         - make PREFIX=$(pwd)/${PACKAGE_DIR} install
         - namcap ${PACKAGE_DIR}/PKGBUILD
         - namcap ${PACKAGE_DIR}/.SRCINFO
@@ -107,9 +101,9 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         TEST_BUILD_DIR: pkgbuild/build_test
     script:
-        - pacman -Sy
-        - pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
-        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
+        - sudo pacman -Sy
+        - sudo pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
+        - sudo pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
         - exec-helper-integration-test
 
 .pkgbuild:upload: &pkgbuild_upload
@@ -122,7 +116,7 @@ stages:
         - echo "Cloning ${URL}..."
         - git clone ${URL} repo
         - rm -rf repo/*
-        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
+        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
         - make PREFIX=$(pwd)/repo install
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
