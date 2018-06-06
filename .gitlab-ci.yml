@@ -63,6 +63,7 @@ stages:
         - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
         - *enable_sudo_nobody
         - cd $BUILD_DIR
+        - sudo chmod 777 .
         - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
     artifacts:
         expire_in: 1 day
