@@ -125,31 +125,31 @@ stages:
 
 pkgbuild:prepare:
     <<: *pkgbuild_prepare
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     variables:
         MAKE_TARGETS: pkgbuild TARGET=prepare
 
 arch-linux:prepare:
     <<: *pkgbuild_prepare
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     only:
         - master
 
 arch-linux-git:prepare:
     <<: *pkgbuild_prepare
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     variables:
         MAKE_TARGETS: prepare-git
 
 pkgbuild:build:
     <<: *pkgbuild_build
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - pkgbuild:prepare
 
 arch-linux:build:
     <<: *pkgbuild_build
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:prepare
     only:
@@ -157,37 +157,37 @@ arch-linux:build:
 
 arch-linux-git:build:
     <<: *pkgbuild_build
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:prepare
 
 pkgbuild:build-test:
     <<: *pkgbuild_build_test
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies: []
 
 arch-linux:build-test:
     <<: *pkgbuild_build_test
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies: []
     only:
         - master
 
 arch-linux-git:build-test:
     <<: *pkgbuild_build_test
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies: []
 
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - pkgbuild:prepare
         - pkgbuild:build
 
 arch-linux:analyze:
     <<: *pkgbuild_analyze
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:prepare
         - arch-linux:build
@@ -196,21 +196,21 @@ arch-linux:analyze:
 
 arch-linux-git:analyze:
     <<: *pkgbuild_analyze
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:prepare
         - arch-linux-git:build
 
 pkgbuild:verify:
     <<: *pkgbuild_verify
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - pkgbuild:build
         - pkgbuild:build-test
 
 arch-linux:verify:
     <<: *pkgbuild_verify
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:build
         - arch-linux:build-test
@@ -219,14 +219,14 @@ arch-linux:verify:
 
 arch-linux-git:verify:
     <<: *pkgbuild_verify
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:build
         - arch-linux-git:build-test
 
 arch-linux:upload:
     <<: *pkgbuild_upload
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:prepare
     variables:
@@ -236,7 +236,7 @@ arch-linux:upload:
 
 arch-linux-git:upload:
     <<: *pkgbuild_upload
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:prepare
     variables:
