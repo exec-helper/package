@@ -45,7 +45,7 @@ stages:
     script:
         - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
         - yay -S microsoft-gsl-git
-        - pip install gitchangelog
+        - sudo pip install gitchangelog
         - echo Making targets= ${MAKE_TARGETS}
         - make ${MAKE_TARGETS}
     artifacts:
