@@ -1,4 +1,4 @@
-image: dock0/arch
+image: base/archlinux
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
