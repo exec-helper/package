@@ -1,4 +1,4 @@
-image: dock0/arch
+image: bverhagen/pacman-aur-wrapper
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
@@ -14,7 +14,7 @@ stages:
 ## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
     ## Install ssh-agent if not already installed
-    - 'which ssh-agent || pacman -Sy --noconfirm --needed openssh'
+    - 'which ssh-agent || sudo pacman -Sy --noconfirm --needed openssh'
   
     ## Run ssh-agent
     - eval $(ssh-agent -s)
@@ -43,12 +43,11 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
-        - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - pip install gitchangelog
-        - *enable_sudo_nobody
+        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
+        - yay -S microsoft-gsl-git
+        - sudo pip install gitchangelog
         - echo Making targets= ${MAKE_TARGETS}
-        - sudo -u nobody make ${MAKE_TARGETS}
+        - make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
@@ -59,11 +58,10 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_package
     script: 
-        - pacman -Sy --noconfirm --needed base-devel sudo lsb-release
-        - gitlab/install-aur.sh microsoft-gsl-git         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - *enable_sudo_nobody
+        - sudo pacman -Sy --noconfirm --needed base-devel sudo lsb-release
+        - yay -S microsoft-gsl-git
         - cd $BUILD_DIR
-        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --force
+        - makepkg --noconfirm --needed --syncdeps --force
     artifacts:
         expire_in: 1 day
         paths:
@@ -75,12 +73,9 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_test
     script: 
-        - pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake
-        - gitlab/install-aur.sh catch2         # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - gitlab/install-aur.sh microsoft-gsl-git            # AUR dependencies are not installed automatically by makepkg and must be installed beforehand. AUR helpers like yaourt on the other hand should be able to install it automagically
-        - pacman -S --noconfirm --needed lsb-release namcap
-        - *enable_sudo_nobody
-        - sudo -u nobody make build-test
+        - sudo pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake catch2 lsb-release namcap
+        - yay -S microsoft-gsl-git
+        - make build-test
         - namcap $BUILD_DIR/PKGBUILD
         - namcap $BUILD_DIR/*.tar.xz
     artifacts:
@@ -94,7 +89,7 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         PACKAGE_DIR: package
     script:
-        - pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
+        - sudo pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
         - make PREFIX=$(pwd)/${PACKAGE_DIR} install
         - namcap ${PACKAGE_DIR}/PKGBUILD
         - namcap ${PACKAGE_DIR}/.SRCINFO
@@ -106,9 +101,9 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         TEST_BUILD_DIR: pkgbuild/build_test
     script:
-        - pacman -Sy
-        - pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
-        - pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
+        - sudo pacman -Sy
+        - sudo pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
+        - sudo pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
         - exec-helper-integration-test
 
 .pkgbuild:upload: &pkgbuild_upload
@@ -121,7 +116,7 @@ stages:
         - echo "Cloning ${URL}..."
         - git clone ${URL} repo
         - rm -rf repo/*
-        - pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
+        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
         - make PREFIX=$(pwd)/repo install
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
@@ -130,31 +125,31 @@ stages:
 
 pkgbuild:prepare:
     <<: *pkgbuild_prepare
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     variables:
         MAKE_TARGETS: pkgbuild TARGET=prepare
 
 arch-linux:prepare:
     <<: *pkgbuild_prepare
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     only:
         - master
 
 arch-linux-git:prepare:
     <<: *pkgbuild_prepare
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     variables:
         MAKE_TARGETS: prepare-git
 
 pkgbuild:build:
     <<: *pkgbuild_build
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - pkgbuild:prepare
 
 arch-linux:build:
     <<: *pkgbuild_build
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:prepare
     only:
@@ -162,37 +157,37 @@ arch-linux:build:
 
 arch-linux-git:build:
     <<: *pkgbuild_build
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:prepare
 
 pkgbuild:build-test:
     <<: *pkgbuild_build_test
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies: []
 
 arch-linux:build-test:
     <<: *pkgbuild_build_test
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies: []
     only:
         - master
 
 arch-linux-git:build-test:
     <<: *pkgbuild_build_test
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies: []
 
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - pkgbuild:prepare
         - pkgbuild:build
 
 arch-linux:analyze:
     <<: *pkgbuild_analyze
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:prepare
         - arch-linux:build
@@ -201,21 +196,21 @@ arch-linux:analyze:
 
 arch-linux-git:analyze:
     <<: *pkgbuild_analyze
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:prepare
         - arch-linux-git:build
 
 pkgbuild:verify:
     <<: *pkgbuild_verify
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - pkgbuild:build
         - pkgbuild:build-test
 
 arch-linux:verify:
     <<: *pkgbuild_verify
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:build
         - arch-linux:build-test
@@ -224,14 +219,14 @@ arch-linux:verify:
 
 arch-linux-git:verify:
     <<: *pkgbuild_verify
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:build
         - arch-linux-git:build-test
 
 arch-linux:upload:
     <<: *pkgbuild_upload
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux:prepare
     variables:
@@ -241,7 +236,7 @@ arch-linux:upload:
 
 arch-linux-git:upload:
     <<: *pkgbuild_upload
-    image: dock0/arch
+    image: bverhagen/pacman-aur-wrapper
     dependencies:
         - arch-linux-git:prepare
     variables:
