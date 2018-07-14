@@ -25,10 +25,6 @@ CONTROL_FILE:=debian/control
 COMPAT_FILE:=debian/compat
 
 CONTROL_IN:=debian/control.in
-# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
-ifeq ($(DISTRIBUTION),$(filter $(DISTRIBUTION),xenial yakkety zesty))
-CONTROL_IN:=debian/control_ubuntu_legacy.in
-endif
 
 RULES_FILE:=debian/rules
 RULES_IN:=debian/rules.in
@@ -70,12 +66,6 @@ $(PREPARE_DIR)/$(CONTROL_FILE): $(CONTROL_IN) $(PREPARE_DIR)/$(COMPAT_FILE)
 $(PREPARE_DIR)/$(RULES_FILE): $(RULES_IN) $(PREPARE_DIR)/$(COMPAT_FILE)
 	@mkdir -p $(@D)
 	cp $(RULES_IN) $(PREPARE_DIR)/$(RULES_TEMP)
-	# Hack for Ubuntu xenial until zesty. From Aartvark onwards, the Debian workflow can be followed (though it will stil generate .ddeb packages)
-ifeq ($(DISTRIBUTION),$(filter $(DISTRIBUTION),xenial yakkety zesty))
-	echo "" >> $(PREPARE_DIR)/$(RULES_TEMP)
-	echo "override_dh_strip:" >> $(PREPARE_DIR)/$(RULES_TEMP)
-	echo "	dh_strip --dbg-package=exec-helper-dbgsym" >> $(PREPARE_DIR)/$(RULES_TEMP)
-endif
 	mv $(PREPARE_DIR)/$(RULES_TEMP) $(PREPARE_DIR)/$(RULES_FILE)
 
 $(DEBIAN_ARCHIVE): $(PREPARE_DIR)/$(CONTROL_FILE) $(PREPARE_DIR)/$(CHANGELOG_FILE) $(PREPARE_DIR)/$(RULES_FILE) $(PREPARE_DIR)/$(COMPAT_FILE)
@@ -83,7 +73,7 @@ $(DEBIAN_ARCHIVE): $(PREPARE_DIR)/$(CONTROL_FILE) $(PREPARE_DIR)/$(CHANGELOG_FIL
 
 # Unfortunately, this had to become a PHONY target in order to be able to read the version at runtime
 archive_source: $(DEBIAN_ARCHIVE) $(SOURCES)
-	$(eval VERSION := $(patsubst %-1,%,$(shell dpkg-parsechangelog --file=$(PREPARE_DIR)/$(CHANGELOG_FILE) -S version)))
+	$(eval VERSION := $(patsubst %-1,%,$(shell dpkg-parsechangelog --file=$(PREPARE_DIR)/$(CHANGELOG_FILE) -S version | sed 's@\(.*\)-[0-9a-z]*$$@\1@g')))
 	$(eval SOURCE_ARCHIVE := $(PROJECT_NAME)_$(VERSION).orig.tar.xz)
 	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
 

@@ -328,9 +328,9 @@ debian-testing:prepare:
     <<: *dpkg_prepare
     image: debian:testing
 
-ubuntu-xenial:prepare:
+ubuntu-bionic:prepare:
     <<: *dpkg_prepare
-    image: ubuntu:xenial
+    image: ubuntu:bionic
 
 ubuntu-rolling:prepare:
     <<: *dpkg_prepare
@@ -350,14 +350,13 @@ debian-testing:build:
     dependencies:
         - debian-testing:prepare
 
-ubuntu-xenial:build:
+ubuntu-bionic:build:
     <<: *dpkg_build
-    image: ubuntu:xenial
+    image: ubuntu:bionic
     variables:
         MAKE_TARGETS: build
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     dependencies:
-        - ubuntu-xenial:prepare
+        - ubuntu-bionic:prepare
 
 ubuntu-rolling:build:
     <<: *dpkg_build
@@ -379,12 +378,11 @@ debian-testing:build-test:
     variables:
         MAKE_TARGETS: dpkg TARGET=build-test
 
-ubuntu-xenial:build-test:
+ubuntu-bionic:build-test:
     <<: *dpkg_build_test
-    image: ubuntu:xenial
+    image: ubuntu:bionic
     variables:
         MAKE_TARGETS: build-test
-        ADDITIONAL_BUILD_DEPENDENCIES: pkg-create-dbgsym
     dependencies: []
 
 ubuntu-rolling:build-test:
@@ -406,14 +404,12 @@ debian-testing:analyze:
         - debian-testing:prepare
         - debian-testing:build
 
-ubuntu-xenial:analyze:
+ubuntu-bionic:analyze:
     <<: *dpkg_analyze
-    image: ubuntu:xenial
-    variables:
-        LINTIAN_ARGS: "--fail-on-warnings"
+    image: ubuntu:bionic
     dependencies:
-        - ubuntu-xenial:prepare
-        - ubuntu-xenial:build
+        - ubuntu-bionic:prepare
+        - ubuntu-bionic:build
 
 ubuntu-rolling:analyze:
     <<: *dpkg_analyze
@@ -436,12 +432,12 @@ debian-testing:verify:
         - debian-testing:build
         - debian-testing:build-test
 
-ubuntu-xenial:verify:
+ubuntu-bionic:verify:
     <<: *dpkg_verify
-    image: ubuntu:xenial
+    image: ubuntu:bionic
     dependencies:
-        - ubuntu-xenial:build
-        - ubuntu-xenial:build-test
+        - ubuntu-bionic:build
+        - ubuntu-bionic:build-test
 
 ubuntu-rolling:verify:
     <<: *dpkg_verify
