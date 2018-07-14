@@ -1,4 +1,6 @@
 # exec-helper-package
+[![pipeline status](https://gitlab.com/bverhagen/exec-helper-package/badges/master/pipeline.svg)](https://gitlab.com/bverhagen/exec-helper-package/commits/master)
+
 Packaging repository builder for the [exec-helper](https://github.com/bverhagen/exec-helper) project.
 
 ## Supported systems
