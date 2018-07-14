@@ -69,6 +69,8 @@ prepare: pkgbuild $(SRC_INFO_FILE)
 prepare-git: pkgbuild-git $(SRC_INFO_FILE)
 prepare-test: pkgbuild-test
 
+source: prepare
+
 build: prepare
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 

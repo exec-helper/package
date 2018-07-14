@@ -263,14 +263,13 @@ arch-linux-git:upload:
             - dpkg/Makefile
             - dpkg/*.tar.xz
 
-.dpkg:build: &dpkg_build
+.dpkg:source: &dpkg_source
     stage: build
     variables:
-        MAKE_TARGETS: build
+        MAKE_TARGETS: source
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - echo "Additional build dependencies = ${ADDITIONAL_BUILD_DEPENDENCIES}"
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - pip install gitchangelog mako
         - *enable_sudo_nobody
@@ -279,7 +278,24 @@ arch-linux-git:upload:
     artifacts:
         expire_in: 1 day
         paths:
-            - "dpkg/package/*"
+            - dpkg/package/source
+
+.dpkg:build: &dpkg_build
+    stage: build
+    variables:
+        MAKE_TARGETS: build
+        ADDITIONAL_BUILD_DEPENDENCIES: ""
+    script:
+        - apt-get update
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - pip install gitchangelog mako
+        - *enable_sudo_nobody
+        - echo "Making targets = ${MAKE_TARGETS}"
+        - sudo -u nobody make ${MAKE_TARGETS}
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - dpkg/package/binary
 
 .dpkg:build-test: &dpkg_build_test
     stage: build
@@ -296,7 +312,7 @@ arch-linux-git:upload:
     artifacts:
         expire_in: 1 day
         paths:
-            - "dpkg/test/package/*"
+            - dpkg/test/package
 
 .dpkg:analyze: &dpkg_analyze
     stage: verify
@@ -305,16 +321,16 @@ arch-linux-git:upload:
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
-        - cd dpkg/package
-        - lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb
+        - cd dpkg/package/source && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes && cd ../../..
+        - cd dpkg/package/binary && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb && cd ../../..
 
 .dpkg:verify: &dpkg_verify
     stage: verify
     script:
         - apt-get update
-        - dpkg -i dpkg/package/*.deb dpkg/test/package/*.deb || true
+        - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb || true
         - apt --fix-broken --yes install
-        - dpkg -i dpkg/package/*.deb dpkg/test/package/*.deb
+        - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb
         - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
         - exec-helper-integration-test
 
@@ -335,6 +351,32 @@ ubuntu-bionic:prepare:
 ubuntu-rolling:prepare:
     <<: *dpkg_prepare
     image: ubuntu:rolling
+
+dpkg:source:
+    <<: *dpkg_source
+    image: debian:testing
+    dependencies:
+        - dpkg:prepare
+    variables:
+        MAKE_TARGETS: dpkg TARGET=source
+
+debian-testing:source:
+    <<: *dpkg_source
+    image: debian:testing
+    dependencies:
+        - debian-testing:prepare
+
+ubuntu-bionic:source:
+    <<: *dpkg_source
+    image: ubuntu:bionic
+    dependencies:
+        - ubuntu-bionic:prepare
+
+ubuntu-rolling:source:
+    <<: *dpkg_source
+    image: ubuntu:rolling
+    dependencies:
+        - ubuntu-rolling:prepare
 
 dpkg:build:
     <<: *dpkg_build
@@ -395,6 +437,7 @@ dpkg:analyze:
     image: debian:testing
     dependencies:
         - dpkg:prepare
+        - dpkg:source
         - dpkg:build
 
 debian-testing:analyze:
@@ -402,6 +445,7 @@ debian-testing:analyze:
     image: debian:testing
     dependencies:
         - debian-testing:prepare
+        - debian-testing:source
         - debian-testing:build
 
 ubuntu-bionic:analyze:
@@ -409,6 +453,7 @@ ubuntu-bionic:analyze:
     image: ubuntu:bionic
     dependencies:
         - ubuntu-bionic:prepare
+        - ubuntu-bionic:source
         - ubuntu-bionic:build
 
 ubuntu-rolling:analyze:
@@ -416,6 +461,7 @@ ubuntu-rolling:analyze:
     image: ubuntu:rolling
     dependencies:
         - ubuntu-rolling:prepare
+        - ubuntu-rolling:source
         - ubuntu-rolling:build
 
 dpkg:verify:

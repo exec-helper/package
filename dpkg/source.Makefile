@@ -1,12 +1,14 @@
-BUILD_DIR?=build
-PACKAGE_DIR?=package
-DEBIAN_ARCHIVE?=DEBIAN.tar.xz
-SOURCE_ARCHIVE?=SOURCE.orig.tar.xz
+PROJECT_NAME?=exec-helper
+BUILD_DIR?=dpkg_source
+PACKAGE_DIR?=package_source
+DEBIAN_ARCHIVE?=debian.tar.xz
+SOURCE_ARCHIVE?=$(PROJECT_NAME)*.orig.tar.gz
+SOURCE_FILES?=CMakeLists.txt
+CHANGES_FILE?=*.changes
 
-DEBIAN_FOLDER:=debian
-SOURCE_FILES:=CMakeLists.txt
-CHANGES_FILE:=*.changes
 EXTRACT_DIR:=$(BUILD_DIR)/build
+
+DEBIAN_DIR:=debian
 
 default: all
 
@@ -32,12 +34,11 @@ $(EXTRACT_DIR)/$(SOURCE_FILES):: $(BUILD_DIR)/$(SOURCE_ARCHIVE) $(EXTRACT_DIR)
 	tar -C $(EXTRACT_DIR) -xf $(BUILD_DIR)/$(SOURCE_ARCHIVE)
 
 $(BUILD_DIR)/$(CHANGES_FILE):: $(EXTRACT_DIR)/$(DEBIAN_FOLDER) $(EXTRACT_DIR)/$(SOURCE_FILES)
-	cd $(EXTRACT_DIR) && dpkg-buildpackage -jauto -us -uc
+	cd $(EXTRACT_DIR) && dpkg-buildpackage -jauto -us -uc --build=source
 
-build: $(BUILD_DIR)/$(CHANGES_FILE)
-	mkdir -p $(PACKAGE_DIR)
+source:: $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)
 	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
-	mv $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)/
+	cp --reflink=auto $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)/
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -46,5 +47,5 @@ clean:
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
-all: build
-.PHONY: build clean list all
+all: source
+.PHONY: all clean list
