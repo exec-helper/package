@@ -321,8 +321,10 @@ arch-linux-git:upload:
     script:
         - apt-get update
         - apt-get install --assume-yes lintian
-        - cd dpkg/package/source && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes && cd ../../..
-        - cd dpkg/package/binary && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb && cd ../../..
+        - pushd dpkg/package/source && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes
+        - popd
+        - pushd dpkg/package/binary && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb
+        - popd
 
 .dpkg:verify: &dpkg_verify
     stage: verify
