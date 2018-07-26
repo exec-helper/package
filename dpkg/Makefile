@@ -1,8 +1,23 @@
 PROJECT_NAME:=exec-helper
 
 SOURCE_DIR:=../$(PROJECT_NAME)
-VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
-SHORT_VERSION=$(shell echo $(VERSION) | sed 's@\(.*\)-[0-9a-z]*$$@\1@g')
+GIT_VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
+SOURCE_VERSION:=$(shell echo $(GIT_VERSION) | sed -E 's@([^-]*)-.*$$@\1@g')
+GIT_REVISION:=$(shell echo $(GIT_VERSION) | sed -E 's@[^-]*-([^-])*-.*$$@\1@g')
+DEBIAN_REVISION:=$(shell echo $$(($(GIT_REVISION)+1)))
+GIT_COMMIT:=$(shell git -C $(SOURCE_DIR) log --format=%h -n1)
+
+ifeq ($(DEBIAN_REVISION),1)
+# For some reasons the Debian tools thread the first debian revision differently
+VERSION:=$(SOURCE_VERSION)~git$(GIT_COMMIT)
+SHORT_VERSION:=$(SOURCE_VERSION)
+SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(SOURCE_VERSION)-$(DEBIAN_REVISION)_source.changes
+else
+VERSION:=$(SOURCE_VERSION)~git$(GIT_COMMIT)-$(DEBIAN_REVISION)
+SHORT_VERSION:=$(SOURCE_VERSION)-$(DEBIAN_REVISION)
+SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_source.changes
+endif
+
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
 BUILD_DIR:=build
@@ -11,7 +26,6 @@ PACKAGE_DIR:=package
 DEBIAN_ARCHIVE=debian.tar.xz
 SOURCE_ARCHIVE:=$(PROJECT_NAME)_$(SHORT_VERSION).orig.tar.xz
 SOURCE_FILES:=CMakeLists.txt
-SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_source.changes
 
 PREPARE_MAKEFILE:=prepare.Makefile
 SOURCE_MAKEFILE:=source.Makefile
