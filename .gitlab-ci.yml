@@ -493,3 +493,13 @@ ubuntu-rolling:verify:
     dependencies:
         - ubuntu-rolling:build
         - ubuntu-rolling:build-test
+
+############################################################################### containers  #############################################################
+trigger-docker-cloud:
+    image: pstauffer/curl
+    stage: upload
+    script:
+        - curl --request POST ${DOCKER_CLOUD_BUILD_TRIGGER}
+    only:
+        - master
+        - dev
