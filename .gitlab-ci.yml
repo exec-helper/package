@@ -12,10 +12,10 @@ stages:
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
 
 .install_gitchangelog_arch: &install_gitchangelog_arch
-        sudo pacman -Sy --noconfirm --needed python curl && curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog && chmod +x /usr/local/bin/gitchangelog
+        sudo pacman -Sy --noconfirm --needed python curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
 
 .install_gitchangelog_debian: &install_gitchangelog_debian
-        sudo apt-get --yes install python curl && curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog && chmod +x /usr/local/bin/gitchangelog
+        sudo apt-get --yes install python curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
 
 ## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
