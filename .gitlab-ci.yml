@@ -11,6 +11,9 @@ stages:
 .enable_sudo_nobody: &enable_sudo_nobody
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
 
+.install_gitchangelog: &install_gitchangelog
+        sudo apt-get --yes install python curl && curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog && chmod +x /usr/local/bin/gitchangelog
+
 ## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
     ## Install ssh-agent if not already installed
@@ -43,9 +46,9 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git python-pip base-devel lsb-release
+        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - yay -S microsoft-gsl-git
-        - sudo pip install gitchangelog
+        - *install_gitchangelog
         - echo Making targets= ${MAKE_TARGETS}
         - make ${MAKE_TARGETS}
     artifacts:
@@ -252,8 +255,8 @@ arch-linux-git:upload:
         MAKE_TARGETS: prepare
     script:
         - apt-get update
-        - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils python-pip
-        - pip install gitchangelog mako
+        - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils
+        - *install_gitchangelog
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
@@ -270,8 +273,8 @@ arch-linux-git:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install gitchangelog mako
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - *install_gitchangelog
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
         - sudo -u nobody make ${MAKE_TARGETS}
@@ -287,8 +290,8 @@ arch-linux-git:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install gitchangelog mako
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - *install_gitchangelog
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
         - sudo -u nobody make ${MAKE_TARGETS}
@@ -304,8 +307,8 @@ arch-linux-git:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install gitchangelog mako
+        - apt-get install --assume-yes debhelper build-essential sudo git lsb-release sed cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - *install_gitchangelog
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
         - sudo -u nobody make ${MAKE_TARGETS}
