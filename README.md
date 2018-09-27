@@ -12,20 +12,27 @@ The following packaging systems are currently supported:
 ### Supported operating systems
 The following operating systems are currently automatically detected when building:
 - Arch linux
-- Debian
-- Ubuntu
+- Debian (testing)
+- Ubuntu (Bionic and roling)
 
 ### Containers
 Containers with exec-helper pre-installed can be found for the following container technologies:
 - Docker: On [Docker Hub](https://hub.docker.com/r/bverhagen/exec-helper-package/). _note:_ Different operating systems use different tags, so make sure to check these out in order to verify whether your system is currently supported.
 
-## Building a package
-Building a package can be done using:
+## Building a source package
+Use:
     make
 or
-    make build
+    make prepare
 
-Build dependencies can be found in the expected files of your package manager.
+## Building a binary, installable package
+Use:
+    make build
+    make install PREFIX=<installation prefix>
+
+where the installation prefix is the root of the path where you want to install the binary package. By default this is in a _package_ subdirectory in the root of this repository.
+
+Build dependencies can be found in the expected files of your package manager or resolved by your package manager.
 
 ## Dev repository
 The development repository can be found at [https://gitlab.com/bverhagen/exec-helper-package].
