@@ -21,18 +21,21 @@ Containers with exec-helper pre-installed can be found for the following contain
 
 ## Building a source package
 Use:
-    make
+```bash
+make
+```
 or
-    make prepare
+```bash
+make prepare
+```
 
 ## Building a binary, installable package
 Use:
-    make build
-    make install PREFIX=<installation prefix>
+```bash
+make build
+make install PREFIX=<installation prefix>
+```
 
-where the installation prefix is the root of the path where you want to install the binary package. By default this is in a _package_ subdirectory in the root of this repository.
+where the _\<installation prefix\>_ is the path where you want to install the binary package. By default this is in a _package_ subdirectory in the root of this repository.
 
 Build dependencies can be found in the expected files of your package manager or resolved by your package manager.
-
-## Dev repository
-The development repository can be found at [https://gitlab.com/bverhagen/exec-helper-package].
