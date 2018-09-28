@@ -32,7 +32,7 @@ $(EXTRACT_DIR)/$(SOURCE_FILES):: $(BUILD_DIR)/$(SOURCE_ARCHIVE) $(EXTRACT_DIR)
 	tar -C $(EXTRACT_DIR) -xf $(BUILD_DIR)/$(SOURCE_ARCHIVE)
 
 $(BUILD_DIR)/$(CHANGES_FILE):: $(EXTRACT_DIR)/$(DEBIAN_FOLDER) $(EXTRACT_DIR)/$(SOURCE_FILES)
-	cd $(EXTRACT_DIR) && dpkg-buildpackage -jauto -us -uc
+	cd $(EXTRACT_DIR) && dpkg-buildpackage -jauto
 
 build: $(BUILD_DIR)/$(CHANGES_FILE)
 	mkdir -p $(PACKAGE_DIR)
