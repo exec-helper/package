@@ -18,10 +18,10 @@ source_directory=$(CURDIR)
 build_directory=build
 prefix = $(CURDIR)/debian/tmp
 
-system_description := $(shell lsb_release --description --short)
-source_version := $(shell git -C ${source_directory}/../../exec-helper describe --long --dirty)
+system_description := "@SYSTEM_DESCRIPTION@"
+source_version := "@VERSION@"
 version := "(${system_description}) ${source_version}"
-copyright := "Copyright (c) $(shell date +'%Y') Bart Verhagen"
+copyright := "Copyright (c) @YEAR@ Bart Verhagen"
 
 # main packaging script based on dh7 syntax
 %:
