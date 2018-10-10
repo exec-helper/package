@@ -364,6 +364,10 @@ ubuntu-rolling:prepare:
     <<: *dpkg_prepare
     image: ubuntu:rolling
 
+ubuntu-devel:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:devel
+
 dpkg:source:
     <<: *dpkg_source
     image: debian:testing
@@ -389,6 +393,12 @@ ubuntu-rolling:source:
     image: ubuntu:rolling
     dependencies:
         - ubuntu-rolling:prepare
+
+ubuntu-devel:source:
+    <<: *dpkg_source
+    image: ubuntu:devel
+    dependencies:
+        - ubuntu-devel:prepare
 
 dpkg:build:
     <<: *dpkg_build
@@ -418,6 +428,12 @@ ubuntu-rolling:build:
     dependencies:
         - ubuntu-rolling:prepare
 
+ubuntu-devel:build:
+    <<: *dpkg_build
+    image: ubuntu:devel
+    dependencies:
+        - ubuntu-devel:prepare
+
 dpkg:build-test:
     <<: *dpkg_build_test
     image: debian:testing
@@ -442,6 +458,11 @@ ubuntu-bionic:build-test:
 ubuntu-rolling:build-test:
     <<: *dpkg_build_test
     image: ubuntu:rolling
+    dependencies: []
+
+ubuntu-devel:build-test:
+    <<: *dpkg_build_test
+    image: ubuntu:devel
     dependencies: []
 
 dpkg:analyze:
@@ -476,6 +497,14 @@ ubuntu-rolling:analyze:
         - ubuntu-rolling:source
         - ubuntu-rolling:build
 
+ubuntu-devel:analyze:
+    <<: *dpkg_analyze
+    image: ubuntu:devel
+    dependencies:
+        - ubuntu-devel:prepare
+        - ubuntu-devel:source
+        - ubuntu-devel:build
+
 dpkg:verify:
     <<: *dpkg_verify
     image: debian:testing
@@ -503,6 +532,13 @@ ubuntu-rolling:verify:
     dependencies:
         - ubuntu-rolling:build
         - ubuntu-rolling:build-test
+
+ubuntu-devel:verify:
+    <<: *dpkg_verify
+    image: ubuntu:devel
+    dependencies:
+        - ubuntu-devel:build
+        - ubuntu-devel:build-test
 
 ############################################################################### containers  #############################################################
 trigger-docker-cloud:
