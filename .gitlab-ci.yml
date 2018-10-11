@@ -548,4 +548,3 @@ trigger-docker-cloud:
         - curl --request POST ${DOCKER_CLOUD_BUILD_TRIGGER}
     only:
         - master
-        - dev
