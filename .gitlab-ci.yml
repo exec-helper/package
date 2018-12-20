@@ -356,10 +356,6 @@ debian-testing:prepare:
     <<: *dpkg_prepare
     image: debian:testing
 
-ubuntu-bionic:prepare:
-    <<: *dpkg_prepare
-    image: ubuntu:bionic
-
 ubuntu-rolling:prepare:
     <<: *dpkg_prepare
     image: ubuntu:rolling
@@ -381,12 +377,6 @@ debian-testing:source:
     image: debian:testing
     dependencies:
         - debian-testing:prepare
-
-ubuntu-bionic:source:
-    <<: *dpkg_source
-    image: ubuntu:bionic
-    dependencies:
-        - ubuntu-bionic:prepare
 
 ubuntu-rolling:source:
     <<: *dpkg_source
@@ -414,14 +404,6 @@ debian-testing:build:
     dependencies:
         - debian-testing:prepare
 
-ubuntu-bionic:build:
-    <<: *dpkg_build
-    image: ubuntu:bionic
-    variables:
-        MAKE_TARGETS: build
-    dependencies:
-        - ubuntu-bionic:prepare
-
 ubuntu-rolling:build:
     <<: *dpkg_build
     image: ubuntu:rolling
@@ -448,13 +430,6 @@ debian-testing:build-test:
     variables:
         MAKE_TARGETS: dpkg TARGET=build-test
 
-ubuntu-bionic:build-test:
-    <<: *dpkg_build_test
-    image: ubuntu:bionic
-    variables:
-        MAKE_TARGETS: build-test
-    dependencies: []
-
 ubuntu-rolling:build-test:
     <<: *dpkg_build_test
     image: ubuntu:rolling
@@ -480,14 +455,6 @@ debian-testing:analyze:
         - debian-testing:prepare
         - debian-testing:source
         - debian-testing:build
-
-ubuntu-bionic:analyze:
-    <<: *dpkg_analyze
-    image: ubuntu:bionic
-    dependencies:
-        - ubuntu-bionic:prepare
-        - ubuntu-bionic:source
-        - ubuntu-bionic:build
 
 ubuntu-rolling:analyze:
     <<: *dpkg_analyze
@@ -518,13 +485,6 @@ debian-testing:verify:
     dependencies:
         - debian-testing:build
         - debian-testing:build-test
-
-ubuntu-bionic:verify:
-    <<: *dpkg_verify
-    image: ubuntu:bionic
-    dependencies:
-        - ubuntu-bionic:build
-        - ubuntu-bionic:build-test
 
 ubuntu-rolling:verify:
     <<: *dpkg_verify
