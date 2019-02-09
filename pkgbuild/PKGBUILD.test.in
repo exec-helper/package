@@ -10,7 +10,7 @@ url="https://github.com/bverhagen/exec-helper"
 license=('GPL3')
 groups=()
 depends=(yaml-cpp boost-libs)
-makedepends=(cmake boost make doxygen graphviz git pkg-config microsoft-gsl-git catch2)
+makedepends=(cmake boost make doxygen graphviz git pkg-config microsoft-gsl-git catch2 rapidcheck)
 checkdepends=()
 optdepends=()
 provides=()
@@ -38,7 +38,7 @@ build() {
     _release_version="($_system_description) $_source_version"
     _copyright="Copyright (c) $(date +'%Y') Bart Verhagen"
 
-    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=ON -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON -DENABLE_TESTING=ON -DENABLE_WERROR=OFF -DVERSION="$_release_version" -DCOPYRIGHT="$_copyright"
+    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_CATCH=ON -DUSE_SYSTEM_RAPIDCHECK=ON -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=ON -DENABLE_TESTING=ON -DENABLE_WERROR=OFF -DVERSION="$_release_version" -DCOPYRIGHT="$_copyright"
     make -C $_build_dir ${_exec_helper_test_build_targets[@]}
 }
 

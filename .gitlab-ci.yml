@@ -50,7 +50,6 @@ stages:
         MAKE_TARGETS: prepare
     script:
         - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
-        - yay -S microsoft-gsl-git
         - *install_gitchangelog_arch
         - echo Making targets= ${MAKE_TARGETS}
         - make ${MAKE_TARGETS}
@@ -65,7 +64,7 @@ stages:
         BUILD_DIR: pkgbuild/build_package
     script: 
         - sudo pacman -Sy --noconfirm --needed base-devel sudo lsb-release
-        - yay -S microsoft-gsl-git
+        - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
         - cd $BUILD_DIR
         - makepkg --noconfirm --needed --syncdeps --force
     artifacts:
@@ -80,7 +79,7 @@ stages:
         BUILD_DIR: pkgbuild/build_test
     script: 
         - sudo pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake catch2 lsb-release namcap
-        - yay -S microsoft-gsl-git
+        - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
         - make build-test
         - namcap $BUILD_DIR/PKGBUILD
         - namcap $BUILD_DIR/*.tar.xz
