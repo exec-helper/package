@@ -68,27 +68,11 @@ stages:
         - sudo pacman -S --noconfirm --needed base-devel sudo lsb-release
         - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
         - cd $BUILD_DIR
-        - makepkg --noconfirm --needed --syncdeps --force
+        - makepkg --check --noconfirm --needed --syncdeps --force
     artifacts:
         expire_in: 1 day
         paths:
             - $BUILD_DIR/PKGBUILD
-            - $BUILD_DIR/*.tar.xz
-
-.pkgbuild:build-test: &pkgbuild_build_test
-    stage: build
-    variables:
-        BUILD_DIR: pkgbuild/build_test
-    script: 
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed sudo base-devel lsb-release cmake catch2 lsb-release namcap
-        - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
-        - make build-test
-        - namcap $BUILD_DIR/PKGBUILD
-        - namcap $BUILD_DIR/*.tar.xz
-    artifacts:
-        expire_in: 1 day
-        paths:
             - $BUILD_DIR/*.tar.xz
 
 .pkgbuild:analyze: &pkgbuild_analyze
@@ -103,17 +87,6 @@ stages:
         - namcap ${PACKAGE_DIR}/PKGBUILD
         - namcap ${PACKAGE_DIR}/.SRCINFO
         - namcap ${BUILD_DIR}/*.tar.xz
-
-.pkgbuild:verify: &pkgbuild_verify
-    stage: verify
-    variables:
-        BUILD_DIR: pkgbuild/build_package
-        TEST_BUILD_DIR: pkgbuild/build_test
-    script:
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
-        - sudo pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
-        - exec-helper-integration-test
 
 .pkgbuild:upload: &pkgbuild_upload
     stage: upload
@@ -171,23 +144,6 @@ arch-linux-git:build:
     dependencies:
         - arch-linux-git:prepare
 
-pkgbuild:build-test:
-    <<: *pkgbuild_build_test
-    image: bverhagen/pacman-aur-wrapper
-    dependencies: []
-
-arch-linux:build-test:
-    <<: *pkgbuild_build_test
-    image: bverhagen/pacman-aur-wrapper
-    dependencies: []
-    only:
-        - master
-
-arch-linux-git:build-test:
-    <<: *pkgbuild_build_test
-    image: bverhagen/pacman-aur-wrapper
-    dependencies: []
-
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
     image: bverhagen/pacman-aur-wrapper
@@ -210,29 +166,6 @@ arch-linux-git:analyze:
     dependencies:
         - arch-linux-git:prepare
         - arch-linux-git:build
-
-pkgbuild:verify:
-    <<: *pkgbuild_verify
-    image: bverhagen/pacman-aur-wrapper
-    dependencies:
-        - pkgbuild:build
-        - pkgbuild:build-test
-
-arch-linux:verify:
-    <<: *pkgbuild_verify
-    image: bverhagen/pacman-aur-wrapper
-    dependencies:
-        - arch-linux:build
-        - arch-linux:build-test
-    only:
-        - master
-
-arch-linux-git:verify:
-    <<: *pkgbuild_verify
-    image: bverhagen/pacman-aur-wrapper
-    dependencies:
-        - arch-linux-git:build
-        - arch-linux-git:build-test
 
 arch-linux:upload:
     <<: *pkgbuild_upload

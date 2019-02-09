@@ -1,7 +1,6 @@
 PROJECT_NAME:=exec-helper
 SOURCE_DIR:=../$(PROJECT_NAME)
 BUILD_DIR:=build_package
-TEST_BUILD_DIR:=build_test
 
 CHANGELOG:=$(PROJECT_NAME).changelog
 CHANGELOG_TEMP_TEMPLATE:=$(CHANGELOG).tmp
@@ -29,9 +28,6 @@ all: build
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TEST_BUILD_DIR):
-	mkdir -p $(TEST_BUILD_DIR)
-
 $(BUILD_DIR)/$(CHANGELOG): $(BUILD_DIR)
 	make --directory "$(SOURCE_DIR)" CHANGELOG_OUTPUT="$(CURDIR)/$(BUILD_DIR)/$(CHANGELOG_TEMP)" print-changelog
 	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
@@ -45,29 +41,18 @@ $(BUILD_DIR)/$(PKG_FILE): $(BUILD_DIR) $(PKG_IN)
 	sed -i "s/@CHANGELOG@/$(CHANGELOG)/g" $(BUILD_DIR)/$(PKG_TEMP)
 	mv $(BUILD_DIR)/$(PKG_TEMP) $(BUILD_DIR)/$(PKG_FILE)
 
-$(TEST_BUILD_DIR)/$(PKG_FILE): $(TEST_BUILD_DIR) $(TEST_PKG_IN)
-	cp $(TEST_PKG_IN) $(TEST_BUILD_DIR)/$(PKG_TEMP)
-	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
-	sed -i "s/@VERSION@/$(VERSION)/g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
-	sed -i "s/@GIT_REF@/commit=$(COMMIT)/g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
-	sed -i "s/@CHANGELOG@//g" $(TEST_BUILD_DIR)/$(PKG_TEMP)
-	mv $(TEST_BUILD_DIR)/$(PKG_TEMP) $(TEST_BUILD_DIR)/$(PKG_FILE)
-
 pkgbuild:: $(BUILD_DIR)/$(PKG_FILE) $(BUILD_DIR)/$(CHANGELOG)
 	sed -i "s/@PACKAGE@/exec-helper/g" $(BUILD_DIR)/$(PKG_FILE)
 
 pkgbuild-git:: $(BUILD_DIR)/$(PKG_FILE) $(BUILD_DIR)/$(CHANGELOG)
 	sed -i "s/@PACKAGE@/exec-helper-git/g" $(BUILD_DIR)/$(PKG_FILE)
 
-pkgbuild-test: $(TEST_BUILD_DIR)/$(PKG_FILE)
-	sed -i "s/@PACKAGE@/exec-helper-test/g" $(TEST_BUILD_DIR)/$(PKG_FILE)
-
 $(SRC_INFO_FILE): $(PKGBUILD) $(BUILD_DIR)
 	cd $(BUILD_DIR) && makepkg --printsrcinfo > $(SRC_INFO_FILE_NAME)
 
 prepare: pkgbuild $(SRC_INFO_FILE)
 prepare-git: pkgbuild-git $(SRC_INFO_FILE)
-prepare-test: pkgbuild-test
+prepare-test: prepare
 
 source: prepare
 
@@ -78,7 +63,7 @@ build-git: prepare-git
 	cd $(BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
 
 build-test: prepare-test
-	cd $(TEST_BUILD_DIR) && makepkg --noconfirm --needed --syncdeps --force
+	cd $(BUILD_DIR) && makepkg --check --noconfirm --needed --syncdeps --force
 
 $(PREFIX):
 	mkdir -p $(PREFIX)
