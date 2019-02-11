@@ -36,8 +36,12 @@ $(BUILD_DIR)/$(CHANGES_FILE):: $(EXTRACT_DIR)/$(DEBIAN_FOLDER) $(EXTRACT_DIR)/$(
 
 build: $(BUILD_DIR)/$(CHANGES_FILE)
 	mkdir -p $(PACKAGE_DIR)
-	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
-	mv $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)/
+
+	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(DSC_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
+	cp --reflink=auto $(BUILD_DIR)/$(DSC_FILE) $(PACKAGE_DIR)/
+
+	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
+	cp --reflink=auto $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)/
 
 clean:
 	rm -rf $(BUILD_DIR)

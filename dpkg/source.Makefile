@@ -4,6 +4,7 @@ PACKAGE_DIR?=package_source
 DEBIAN_ARCHIVE?=debian.tar.xz
 SOURCE_ARCHIVE?=$(PROJECT_NAME)*.orig.tar.gz
 SOURCE_FILES?=CMakeLists.txt
+DSC_FILE?=*.dsc
 CHANGES_FILE?=*.changes
 
 EXTRACT_DIR:=$(BUILD_DIR)/build
@@ -37,7 +38,10 @@ $(BUILD_DIR)/$(CHANGES_FILE):: $(EXTRACT_DIR)/$(DEBIAN_FOLDER) $(EXTRACT_DIR)/$(
 	cd $(EXTRACT_DIR) && dpkg-buildpackage -jauto -us -uc --build=source
 
 source:: $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)
-	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
+	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(DSC_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
+	cp --reflink=auto $(BUILD_DIR)/$(DSC_FILE) $(PACKAGE_DIR)/
+
+	cd $(BUILD_DIR) && cp --reflink=auto $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(CURDIR)/$(PACKAGE_DIR)/
 	cp --reflink=auto $(BUILD_DIR)/$(CHANGES_FILE) $(PACKAGE_DIR)/
 
 clean:
