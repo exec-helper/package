@@ -12,7 +12,7 @@ stages:
         echo "nobody ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers                  # Enable sudo to work without prompting a password
 
 .install_gitchangelog_arch: &install_gitchangelog_arch
-        sudo pacman -Sy --noconfirm --needed python curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
+        sudo pacman -Sy --noconfirm --needed python curl libidn2 && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
 
 .install_gitchangelog_debian: &install_gitchangelog_debian
         sudo apt-get --yes install python curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
@@ -49,7 +49,8 @@ stages:
     variables:
         MAKE_TARGETS: prepare
     script:
-        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
         - echo Making targets= ${MAKE_TARGETS}
         - make ${MAKE_TARGETS}
@@ -63,7 +64,8 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_package
     script: 
-        - sudo pacman -Sy --noconfirm --needed base-devel sudo lsb-release
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed base-devel sudo lsb-release
         - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
         - cd $BUILD_DIR
         - makepkg --noconfirm --needed --syncdeps --force
@@ -78,7 +80,8 @@ stages:
     variables:
         BUILD_DIR: pkgbuild/build_test
     script: 
-        - sudo pacman -Sy --noconfirm --needed sudo base-devel lsb-release cmake catch2 lsb-release namcap
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed sudo base-devel lsb-release cmake catch2 lsb-release namcap
         - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
         - make build-test
         - namcap $BUILD_DIR/PKGBUILD
@@ -94,7 +97,8 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         PACKAGE_DIR: package
     script:
-        - sudo pacman -Sy --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
         - make PREFIX=$(pwd)/${PACKAGE_DIR} install
         - namcap ${PACKAGE_DIR}/PKGBUILD
         - namcap ${PACKAGE_DIR}/.SRCINFO
@@ -106,9 +110,9 @@ stages:
         BUILD_DIR: pkgbuild/build_package
         TEST_BUILD_DIR: pkgbuild/build_test
     script:
-        - sudo pacman -Sy
+        - sudo pacman -Syu --noconfirm --needed
         - sudo pacman --needed --noconfirm -U $BUILD_DIR/*.tar.xz $TEST_BUILD_DIR/*.tar.xz
-        - sudo pacman -Sy --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
+        - sudo pacman -S --noconfirm --needed base-devel curl gcc clang make scons clang-tools-extra cppcheck git java-environment unzip wget valgrind lsb-release
         - exec-helper-integration-test
 
 .pkgbuild:upload: &pkgbuild_upload
@@ -121,7 +125,8 @@ stages:
         - echo "Cloning ${URL}..."
         - git clone ${URL} repo
         - rm -rf repo/*
-        - sudo pacman -Sy --noconfirm --needed make sed lsb-release sudo git lsb-release
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git lsb-release
         - make PREFIX=$(pwd)/repo install
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .

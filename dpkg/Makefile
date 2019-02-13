@@ -7,6 +7,8 @@ GIT_REVISION:=$(shell echo $(GIT_VERSION) | sed -E 's@[^-]*-([^-])*-.*$$@\1@g')
 DEBIAN_REVISION:=$(shell echo $$(($(GIT_REVISION)+1)))
 GIT_COMMIT:=$(shell git -C $(SOURCE_DIR) log --format=%h -n1)
 
+SHORT_VERSION_REVISION:=$(SOURCE_VERSION)-$(DEBIAN_REVISION)
+
 ifeq ($(DEBIAN_REVISION),1)
 # For some reasons the Debian tools thread the first debian revision differently
 VERSION:=$(SOURCE_VERSION)~git$(GIT_COMMIT)
@@ -14,11 +16,11 @@ SHORT_VERSION:=$(SOURCE_VERSION)
 SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(SOURCE_VERSION)-$(DEBIAN_REVISION)_source.changes
 else
 VERSION:=$(SOURCE_VERSION)-$(DEBIAN_REVISION)~git$(GIT_COMMIT)
-SHORT_VERSION:=$(SOURCE_VERSION)
+SHORT_VERSION:=$(SHORT_VERSION_REVISION)
 SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_source.changes
 endif
 
-DSC_FILE:=$(PROJECT_NAME)_$(VERSION).dsc
+DSC_FILE:=$(PROJECT_NAME)_$(SHORT_VERSION_REVISION).dsc
 
 DISTRIBUTION:=$(shell lsb_release --codename --short)
 
