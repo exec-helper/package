@@ -47,45 +47,47 @@ stages:
 .pkgbuild:prepare: &pkgbuild_prepare
     stage: prepare
     variables:
-        MAKE_TARGETS: prepare
+        MAKE_TARGETS: install
+        ARTIFACT_DIR: package-source
     script:
         - sudo pacman -Syu --noconfirm --needed
         - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
-        - echo Making targets= ${MAKE_TARGETS}
-        - make ${MAKE_TARGETS}
+        - make "PREFIX=$(pwd)/${ARTIFACT_DIR}" ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
-            - pkgbuild/build_package/*
+            - package-source
 
 .pkgbuild:build: &pkgbuild_build
     stage: build
     variables:
-        BUILD_DIR: pkgbuild/build_package
+        BUILD_DIR: package-source
+        ARTIFACT_DIR: binary-package
     script: 
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed base-devel sudo lsb-release
+        - sudo pacman -Sy --noconfirm --needed base-devel
         - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
-        - cd $BUILD_DIR
-        - makepkg --check --noconfirm --needed --syncdeps --force
+        - mkdir -p "${ARTIFACT_DIR}"
+        - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
+        - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"
+        - pushd ${BUILD_DIR}
+        - makepkg --noconfirm --needed --syncdeps --config "${BUILD_CONF}"
+        - popd
     artifacts:
         expire_in: 1 day
         paths:
-            - $BUILD_DIR/*.tar.xz
+            - binary-package
 
 .pkgbuild:analyze: &pkgbuild_analyze
     stage: verify
     variables:
-        BUILD_DIR: pkgbuild/build_package
-        PACKAGE_DIR: package
+        PACKAGE_SOURCE: package-source
+        BINARY_DIR: binary-package
     script:
         - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed yaml-cpp boost-libs gcc-libs namcap make lsb-release
-        - make PREFIX=$(pwd)/${PACKAGE_DIR} install
-        - namcap ${PACKAGE_DIR}/PKGBUILD
-        - namcap ${PACKAGE_DIR}/.SRCINFO
-        - namcap ${BUILD_DIR}/*.tar.xz
+        - sudo pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
+        - namcap ${PACKAGE_SOURCE}/PKGBUILD
+        - namcap ${BINARY_DIR}/*.tar.xz
 
 .pkgbuild:upload: &pkgbuild_upload
     stage: upload
@@ -96,10 +98,8 @@ stages:
     script:
         - echo "Cloning ${URL}..."
         - git clone ${URL} repo
-        - rm -rf repo/*
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git lsb-release
-        - make PREFIX=$(pwd)/repo install
+        - rm -rf repo/{.,}*
+        - mv package-source/{.,}* repo/
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
         - git -C repo diff-index --quiet HEAD -- && echo 'No changes -- skipping commit' || git -C repo commit -m "Updated package to exec-helper commit ${EXEC_HELPER_HASH}"
@@ -108,8 +108,6 @@ stages:
 pkgbuild:prepare:
     <<: *pkgbuild_prepare
     image: bverhagen/pacman-aur-wrapper
-    variables:
-        MAKE_TARGETS: pkgbuild TARGET=prepare
 
 arch-linux:prepare:
     <<: *pkgbuild_prepare
@@ -121,7 +119,8 @@ arch-linux-git:prepare:
     <<: *pkgbuild_prepare
     image: bverhagen/pacman-aur-wrapper
     variables:
-        MAKE_TARGETS: prepare-git
+        MAKE_TARGETS: install-git
+        ARTIFACT_DIR: package-source
 
 pkgbuild:build:
     <<: *pkgbuild_build

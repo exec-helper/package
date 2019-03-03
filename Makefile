@@ -1,4 +1,6 @@
-PREFIX:=package
+CURDIR:=$(shell pwd)
+
+PREFIX?="$(CURDIR)/package"
 
 all: prepare
 
@@ -39,6 +41,9 @@ build-test:
 
 install:
 	$(MAKE) find-distribution TARGET=install
+
+install-git:
+	$(MAKE) find-distribution TARGET=install-git
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
