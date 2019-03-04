@@ -72,7 +72,6 @@ stages:
     artifacts:
         expire_in: 1 day
         paths:
-            - $BUILD_DIR/PKGBUILD
             - $BUILD_DIR/*.tar.xz
 
 .pkgbuild:analyze: &pkgbuild_analyze
