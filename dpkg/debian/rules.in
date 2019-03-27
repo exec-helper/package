@@ -19,7 +19,7 @@ build_directory=build
 prefix = $(CURDIR)/debian/tmp
 
 system_description := $(shell lsb_release --description --short)
-source_version := $(shell git -C ${source_directory}/../../exec-helper describe --long --dirty)
+source_version := $(shell git -C ${source_directory}/../../../../exec-helper describe --long --dirty)
 version := "(${system_description}) ${source_version}"
 copyright := "Copyright (c) $(shell date +'%Y') Bart Verhagen"
 
@@ -28,13 +28,13 @@ copyright := "Copyright (c) $(shell date +'%Y') Bart Verhagen"
 	dh $@ --sourcedirectory=${source_directory} --builddirectory=${build_directory} --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DENABLE_TESTING=OFF -DCMAKE_INSTALL_PREFIX=$(prefix)/usr -DENABLE_WERROR=OFF -DVERSION=${version} -DCOPYRIGHT=${copyright}
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=OFF -DUSE_SYSTEM_GSL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=OFF -DBUILD_MAN_DOCUMENTATION=OFF -DENABLE_TESTING=OFF -DCMAKE_INSTALL_PREFIX=$(prefix)/usr -DENABLE_WERROR=OFF -DVERSION=${version} -DCOPYRIGHT=${copyright}
 
 override_dh_auto_build-indep:
-	dh_auto_build -- docs-html
+#	dh_auto_build -- docs-html
 
 override_dh_auto_build-dep:
-	dh_auto_build -- exec-helper docs-man
+	dh_auto_build -- exec-helper
 
 override_dh_auto_build: override_dh_auto_build-indep override_dh_auto_build-dep
 
@@ -43,9 +43,9 @@ override_dh_auto_test:
 	
 override_dh_auto_install-dep:
 	cmake -DCOMPONENT=runtime -P "${build_directory}/cmake_install.cmake"
-	cmake -DCOMPONENT=docs-man -P "${build_directory}/cmake_install.cmake"
+#	cmake -DCOMPONENT=docs-man -P "${build_directory}/cmake_install.cmake"
 
 override_dh_auto_install-indep:
-	cmake -DCOMPONENT=docs-html -P "${build_directory}/cmake_install.cmake"
+#	cmake -DCOMPONENT=docs-html -P "${build_directory}/cmake_install.cmake"
 
 override_dh_auto_install: override_dh_auto_install-dep override_dh_auto_install-indep

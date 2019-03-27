@@ -24,6 +24,7 @@ $(BUILD_DIR)/$(DEBIAN_ARCHIVE): $(BUILD_DIR)
 
 $(BUILD_DIR)/$(SOURCE_ARCHIVE): $(BUILD_DIR)
 	cp --reflink=auto $(SOURCE_ARCHIVE) $(BUILD_DIR)/$(SOURCE_ARCHIVE)
+	cp --reflink=auto $(SOURCE_ARCHIVE) $(BUILD_DIR)/exec-helper_0.3.0~git8f90e3e.orig.tar.xz
 
 $(EXTRACT_DIR)/$(DEBIAN_FOLDER):: $(BUILD_DIR)/$(DEBIAN_ARCHIVE) $(EXTRACT_DIR)
 	tar -C $(EXTRACT_DIR) -xf $(BUILD_DIR)/$(DEBIAN_ARCHIVE)
@@ -32,7 +33,7 @@ $(EXTRACT_DIR)/$(SOURCE_FILES):: $(BUILD_DIR)/$(SOURCE_ARCHIVE) $(EXTRACT_DIR)
 	tar -C $(EXTRACT_DIR) -xf $(BUILD_DIR)/$(SOURCE_ARCHIVE)
 
 $(BUILD_DIR)/$(CHANGES_FILE):: $(EXTRACT_DIR)/$(DEBIAN_FOLDER) $(EXTRACT_DIR)/$(SOURCE_FILES)
-	cd $(EXTRACT_DIR) && dpkg-buildpackage -jauto -us -uc
+	cd $(EXTRACT_DIR) && dpkg-buildpackage -j8 -us -uc
 
 build: $(BUILD_DIR)/$(CHANGES_FILE)
 	mkdir -p $(PACKAGE_DIR)

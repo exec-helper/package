@@ -70,7 +70,7 @@ $(DEBIAN_ARCHIVE): $(BUILD_DIR)/$(CONTROL_FILE) $(BUILD_DIR)/$(CHANGELOG_FILE) $
 	tar -c --directory $(BUILD_DIR) --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af $(DEBIAN_ARCHIVE) debian
 
 $(SOURCE_ARCHIVE): $(SOURCES)
-	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
+	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
 
 prepare:: $(DEBIAN_ARCHIVE) $(SOURCE_ARCHIVE)
 
