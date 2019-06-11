@@ -66,7 +66,7 @@ stages:
         ARTIFACT_DIR: binary-package
     script: 
         - sudo pacman -Sy --noconfirm --needed base-devel
-        - yay -S --noconfirm --needed rapidcheck microsoft-gsl-git
+        - yay -S --noconfirm --needed rapidcheck microsoft-gsl
         - mkdir -p "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
         - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"
