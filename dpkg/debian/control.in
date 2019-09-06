@@ -10,9 +10,8 @@ Build-Depends:
     libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
 #    libmsgsl-dev,      # Can be reactivated once the version is sufficiently up to date on Ubuntu
-    doxygen,
     git,
-    doxygen,
+#    doxygen,
     graphviz,
     pkg-config
 Standards-Version: 4.1.0

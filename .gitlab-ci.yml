@@ -42,6 +42,9 @@ stages:
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
 
+.install_doxygen: &install_doxygen
+        git clone https://github.com/doxygen/doxygen.git && pushd doxygen && git checkout Release_1_8_16 && cmake -H. -Bbuild && make -C build && make -C build install && popd
+
 ############################################################################### PKGBUILD #############################################################
 
 .pkgbuild:prepare: &pkgbuild_prepare
@@ -50,10 +53,10 @@ stages:
         MAKE_TARGETS: install
         ARTIFACT_DIR: package-source
     script:
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
+        - pacman -Syu --noconfirm --needed
+        - pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
-        - make "PREFIX=$(pwd)/${ARTIFACT_DIR}" ${MAKE_TARGETS}
+        - sudo -u nobody make "PREFIX=$(pwd)/${ARTIFACT_DIR}" ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
@@ -65,13 +68,13 @@ stages:
         BUILD_DIR: package-source
         ARTIFACT_DIR: binary-package
     script: 
-        - sudo pacman -Sy --noconfirm --needed base-devel
-        - yay -S --noconfirm --needed rapidcheck microsoft-gsl
+        - pacman -Sy --noconfirm --needed base-devel sudo
+        - sudo -u nobody yay -S --noconfirm --needed rapidcheck microsoft-gsl
         - mkdir -p "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
         - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"
         - pushd ${BUILD_DIR}
-        - makepkg --noconfirm --needed --syncdeps --config "${BUILD_CONF}"
+        - sudo -u nobody makepkg --noconfirm --needed --syncdeps --config "${BUILD_CONF}"
         - popd
     artifacts:
         expire_in: 1 day
@@ -84,8 +87,8 @@ stages:
         PACKAGE_SOURCE: package-source
         BINARY_DIR: binary-package
     script:
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
+        - pacman -Syu --noconfirm --needed
+        - pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
         - namcap ${PACKAGE_SOURCE}/PKGBUILD
         - namcap ${BINARY_DIR}/*.tar.xz
 
@@ -235,6 +238,7 @@ arch-linux-git:upload:
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
+        - pwd
         - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
@@ -332,24 +336,40 @@ dpkg:build:
         - dpkg:prepare
     variables:
         MAKE_TARGETS: dpkg TARGET=build
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 debian-testing:build:
     <<: *dpkg_build
     image: debian:testing
     dependencies:
         - debian-testing:prepare
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 ubuntu-rolling:build:
     <<: *dpkg_build
     image: ubuntu:rolling
     dependencies:
         - ubuntu-rolling:prepare
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 ubuntu-devel:build:
     <<: *dpkg_build
     image: ubuntu:devel
     dependencies:
         - ubuntu-devel:prepare
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 dpkg:build-test:
     <<: *dpkg_build_test
@@ -357,6 +377,10 @@ dpkg:build-test:
     dependencies: []
     variables:
         MAKE_TARGETS: dpkg TARGET=build-test
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 debian-testing:build-test:
     <<: *dpkg_build_test
@@ -364,16 +388,28 @@ debian-testing:build-test:
     dependencies: []
     variables:
         MAKE_TARGETS: dpkg TARGET=build-test
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 ubuntu-rolling:build-test:
     <<: *dpkg_build_test
     image: ubuntu:rolling
     dependencies: []
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 ubuntu-devel:build-test:
     <<: *dpkg_build_test
     image: ubuntu:devel
     dependencies: []
+    before_script:
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+        - *install_doxygen
 
 dpkg:analyze:
     <<: *dpkg_analyze

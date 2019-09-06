@@ -1,2 +1,2 @@
-usr/bin/exec-helper-*test
-usr/bin/execution-content
+usr/test/integration/exec-helper-*test
+usr/test/integration/execution-content
