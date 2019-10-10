@@ -55,7 +55,8 @@ check() {
     make --directory "$_build_dir" --jobs ${_nb_of_cores} ${_exec_helper_test_targets[@]}
 
     _install_dir="$pkgdir/usr/"
-    PATH="${PWD}/$_build_dir/src/applications:${PWD}/$_build_dir/test/base-utils/application/:$PATH" "$_build_dir/test/integration/exec-helper-integration-test"
+    cd $_build_dir
+    PATH="${PWD}/src/applications:${PWD}/test/base-utils/application/:$PATH" "test/integration/exec-helper-integration-test"
 }
 
 package_@PACKAGE@() {

@@ -283,6 +283,7 @@ arch-linux-git:upload:
         - apt --fix-broken --yes install
         - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb
         - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
+        - cd /tmp
         - exec-helper-integration-test
 
 dpkg:prepare:
