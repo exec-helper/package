@@ -101,8 +101,8 @@ stages:
     script:
         - echo "Cloning ${URL}..."
         - git clone ${URL} repo
-        - rm -rf repo/{.,}*
-        - mv package-source/{.,}* repo/
+        - rm -f repo/{.SRCINFO,PKGBUILD,exec-helper.changelog}
+        - mv package-source/{.SRCINFO,PKGBUILD,*.changelog} repo/
         - export EXEC_HELPER_HASH=$(git log -n 1 --pretty=format:"%H")
         - git -C repo add .
         - git -C repo diff-index --quiet HEAD -- && echo 'No changes -- skipping commit' || git -C repo commit -m "Updated package to exec-helper commit ${EXEC_HELPER_HASH}"
