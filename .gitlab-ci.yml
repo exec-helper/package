@@ -15,7 +15,7 @@ stages:
         sudo pacman -Sy --noconfirm --needed python curl libidn2 && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
 
 .install_gitchangelog_debian: &install_gitchangelog_debian
-        sudo apt-get --yes install python curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog
+        sudo apt-get --yes install python3 python3-mako curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog && [ -f /usr/bin/python ] || ln -s python3 /usr/bin/python
 
 ## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
@@ -186,8 +186,7 @@ arch-linux:upload:
         MAKE_TARGETS: prepare
     script:
         - apt-get update
-        - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils python-pip
-        - pip install mako
+        - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils python3-pip
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
@@ -205,8 +204,7 @@ arch-linux:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install mako
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
@@ -223,8 +221,7 @@ arch-linux:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install mako
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
@@ -242,8 +239,7 @@ arch-linux:upload:
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential sudo git lsb-release sed python-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - pip install mako
+        - apt-get install --assume-yes debhelper build-essential sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo Making targets= ${MAKE_TARGETS}
@@ -463,10 +459,108 @@ ubuntu-devel:verify:
         - ubuntu-devel:build-test
 
 ############################################################################### containers  #############################################################
-trigger-docker-cloud:
-    image: pstauffer/curl
-    stage: upload
+.docker:build: &docker_build
+    stage: build
+    image: docker:latest
+    services:
+        - docker:dind
+    variables:
+        IMAGE: "???"
+        WORKDIR: "."
+        DOCKERFILE: "Dockerfile"
+        DOCKER_ARGS: ""
     script:
-        - curl --request POST ${DOCKER_CLOUD_BUILD_TRIGGER}
+        - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" "${CI_REGISTRY}"
+        - cd "${WORKDIR}"
+        - docker build --compress=true --force-rm=true --pull=true --no-cache=true --rm=true ${DOCKER_ARGS} "--tag=${IMAGE}" "--file=${DOCKERFILE}" .
+        - docker push "${IMAGE}"
+
+.docker:upload: &docker_upload
+    stage: upload
+    image: docker:latest
+    services:
+        - docker:dind
+    variables:
+        SOURCE_IMAGE: "???"
+        TARGET_IMAGE: "???"
+    script:
+        - docker login -u gitlab-ci-token -p "${CI_BUILD_TOKEN}" "${CI_REGISTRY}"
+        - docker pull "${SOURCE_IMAGE}"
+        - docker tag "${SOURCE_IMAGE}" "${TARGET_IMAGE}"
+        - export CI_REGISTRY_USER=bverhagen
+        - export CI_REGISTRY_PASSWORD=${DOCKER_HUB_TOKEN}
+        - rm -f ~/.docker/config.json
+        - docker login -u bverhagen -p "${DOCKER_HUB_TOKEN}" docker.io
+        - docker push "${TARGET_IMAGE}"
+
+docker:arch-linux:build:
+    <<: *docker_build
+    dependencies: []
+    variables:
+        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:arch-linux"
+        WORKDIR: "."
+        DOCKERFILE: "containers/docker/pkgbuild.Dockerfile"
+        DOCKER_ARGS: ""
+
+docker:debian-testing:build:
+    <<: *docker_build
+    dependencies: []
+    variables:
+        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
+        WORKDIR: "."
+        DOCKERFILE: "containers/docker/dpkg.Dockerfile"
+        DOCKER_ARGS: "--build-arg BASE_IMAGE=debian:testing"
+
+docker:ubuntu-rolling:build:
+    <<: *docker_build
+    dependencies: []
+    variables:
+        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
+        WORKDIR: "."
+        DOCKERFILE: "containers/docker/dpkg.Dockerfile"
+        DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:rolling"
+
+docker:ubuntu-devel:build:
+    <<: *docker_build
+    dependencies: []
+    variables:
+        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
+        WORKDIR: "."
+        DOCKERFILE: "containers/docker/dpkg.Dockerfile"
+        DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:devel"
+
+docker:arch-linux:upload:
+    <<: *docker_upload
+    dependencies: []
+    variables:
+        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:arch-linux"
+        TARGET_IMAGE: "bverhagen/exec-helper:arch-linux"
+    only:
+        - master
+
+docker:debian-testing:upload:
+    <<: *docker_upload
+    dependencies: []
+    variables:
+        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
+        TARGET_IMAGE: "bverhagen/exec-helper:debian-testing"
+    only:
+        - master
+
+docker:ubuntu-rolling:upload:
+    <<: *docker_upload
+    dependencies: []
+    variables:
+        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-eoan"
+    only:
+        - master
+
+docker:ubuntu-devel:upload:
+    <<: *docker_upload
+    dependencies: []
+    variables:
+        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
     only:
         - master
