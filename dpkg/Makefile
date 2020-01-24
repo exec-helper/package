@@ -10,7 +10,7 @@ GIT_COMMIT:=$(shell git -C $(SOURCE_DIR) log --format=%h -n1)
 SHORT_VERSION_REVISION:=$(SOURCE_VERSION)-$(DEBIAN_REVISION)
 
 ifeq ($(DEBIAN_REVISION),1)
-# For some reasons the Debian tools thread the first debian revision differently
+# For some reasons the Debian tools treat the first debian revision differently
 VERSION:=$(SOURCE_VERSION)~git$(GIT_COMMIT)
 SHORT_VERSION:=$(SOURCE_VERSION)
 SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(SOURCE_VERSION)-$(DEBIAN_REVISION)_source.changes
@@ -28,7 +28,7 @@ BUILD_DIR:=build
 PACKAGE_DIR:=package
 
 DEBIAN_ARCHIVE=debian.tar.xz
-SOURCE_ARCHIVE:=$(PROJECT_NAME)_$(SHORT_VERSION).orig.tar.xz
+SOURCE_ARCHIVE:=$(PROJECT_NAME)_$(SOURCE_VERSION).orig.tar.xz
 SOURCE_FILES:=CMakeLists.txt
 
 PREPARE_MAKEFILE:=prepare.Makefile
