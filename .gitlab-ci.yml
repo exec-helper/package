@@ -178,16 +178,6 @@ arch-linux:upload:
     only:
         - master
 
-arch-linux-git:upload:
-    <<: *pkgbuild_upload
-    image: bverhagen/pacman-aur-wrapper
-    dependencies:
-        - arch-linux-git:prepare
-    variables:
-        URL: ssh://aur@aur.archlinux.org/exec-helper-git.git
-    only:
-        - dev
-
 ############################################################################### dpkg  #############################################################
 
 .dpkg:prepare: &dpkg_prepare
