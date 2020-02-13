@@ -462,6 +462,7 @@ ubuntu-devel:verify:
 .docker:build: &docker_build
     stage: build
     image: docker:latest
+    dependencies: []
     services:
         - docker:dind
     variables:
@@ -478,6 +479,7 @@ ubuntu-devel:verify:
 .docker:upload: &docker_upload
     stage: upload
     image: docker:latest
+    dependencies: []
     services:
         - docker:dind
     variables:
