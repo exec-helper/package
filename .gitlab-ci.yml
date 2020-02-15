@@ -1,4 +1,4 @@
-image: bverhagen/pacman-aur-wrapper
+image: bverhagen/awesome-aur-wrapper:yay
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
