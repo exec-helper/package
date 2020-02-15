@@ -1,4 +1,4 @@
-image: bverhagen/awesome-aur-wrapper:yay
+image: scratch
 variables:
       GIT_SUBMODULE_STRATEGY: recursive
 
@@ -53,10 +53,10 @@ stages:
         MAKE_TARGETS: install
         ARTIFACT_DIR: package-source
     script:
-        - pacman -Syu --noconfirm --needed
-        - pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
-        - sudo --preserve-env --user nobody make "PREFIX=$(pwd)/${ARTIFACT_DIR}" ${MAKE_TARGETS}
+        - make "PREFIX=${pwd}/${ARTIFACT_DIR}" ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
@@ -68,13 +68,13 @@ stages:
         BUILD_DIR: package-source
         ARTIFACT_DIR: binary-package
     script: 
-        - pacman -Sy --noconfirm --needed base-devel sudo
-        - sudo -u nobody yay -S --noconfirm --needed rapidcheck microsoft-gsl
+        - sudo pacman -Sy --noconfirm --needed base-devel sudo
+        - yay -S --noconfirm --needed rapidcheck microsoft-gsl
         - mkdir --mode 777 --parents "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
         - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"
         - pushd ${BUILD_DIR}
-        - sudo --preserve-env --user nobody makepkg --noconfirm --needed --syncdeps --config "${BUILD_CONF}"
+        - makepkg --noconfirm --needed --syncdeps --config "${BUILD_CONF}"
         - popd
     artifacts:
         expire_in: 1 day
@@ -87,8 +87,8 @@ stages:
         PACKAGE_SOURCE: package-source
         BINARY_DIR: binary-package
     script:
-        - pacman -Syu --noconfirm --needed
-        - pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
+        - sudo pacman -Syu --noconfirm --needed
+        - sudo pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
         - namcap ${PACKAGE_SOURCE}/PKGBUILD
         - namcap ${BINARY_DIR}/*.tar.xz
 
@@ -110,30 +110,30 @@ stages:
 
 pkgbuild:prepare:
     <<: *pkgbuild_prepare
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
 
 arch-linux:prepare:
     <<: *pkgbuild_prepare
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
     only:
         - master
 
 arch-linux-git:prepare:
     <<: *pkgbuild_prepare
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
     variables:
         MAKE_TARGETS: install-git
         ARTIFACT_DIR: package-source
 
 pkgbuild:build:
     <<: *pkgbuild_build
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
     dependencies:
         - pkgbuild:prepare
 
 arch-linux:build:
     <<: *pkgbuild_build
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
     dependencies:
         - arch-linux:prepare
     only:
@@ -141,20 +141,20 @@ arch-linux:build:
 
 arch-linux-git:build:
     <<: *pkgbuild_build
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
     dependencies:
         - arch-linux-git:prepare
 
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
-    image: bverhagen/pacman-aur-wrapper
+    image: archlinux
     dependencies:
         - pkgbuild:prepare
         - pkgbuild:build
 
 arch-linux:analyze:
     <<: *pkgbuild_analyze
-    image: bverhagen/pacman-aur-wrapper
+    image: archlinux
     dependencies:
         - arch-linux:prepare
         - arch-linux:build
@@ -163,14 +163,14 @@ arch-linux:analyze:
 
 arch-linux-git:analyze:
     <<: *pkgbuild_analyze
-    image: bverhagen/pacman-aur-wrapper
+    image: archlinux
     dependencies:
         - arch-linux-git:prepare
         - arch-linux-git:build
 
 arch-linux:upload:
     <<: *pkgbuild_upload
-    image: bverhagen/pacman-aur-wrapper
+    image: bverhagen/awesome-aur-wrapper:yay
     dependencies:
         - arch-linux:prepare
     variables:
