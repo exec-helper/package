@@ -24,7 +24,7 @@ $(BUILD_DIR)/$(SOURCE_FILES): $(BUILD_DIR)
 deploy-archives:: $(BUILD_DIR)/$(DEBIAN_FOLDER) $(BUILD_DIR)/$(SOURCE_FILES)
 
 build: deploy-archives
-	cd $(BUILD_DIR) && dpkg-buildpackage -jauto -us -uc
+	cd $(BUILD_DIR) && dpkg-buildpackage -jauto
 	mkdir -p $(PACKAGE_DIR)
 	mv $$(sed -n '/Files:/,$$p' $(CHANGES_FILE) | grep -E "\.dsc$$|\.tar.xz$$|\.tar.gz$$|\.deb$$|\.ddeb$$|\.buildinfo$$" | sed 's/.* //' | xargs) $(PACKAGE_DIR)/
 	mv $(CHANGES_FILE) $(PACKAGE_DIR)/
