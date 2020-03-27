@@ -3,12 +3,7 @@ pkgbuild/build_package
 pkgbuild/build_test
 
 # DPKG specific ignores
-dpkg/**/dpkg_prepare
-dpkg/**/dpkg_build
-dpkg/**/*.dsc
-dpkg/**/*.tar.xz
-dpkg/**/*.changes
-dpkg/**/*.deb
-dpkg/**/*.ddeb
-dpkg/**/*.buildinfo
+dpkg/*.orig.tar.xz
+dpkg/debian.tar.xz
+dpkg/build
 dpkg/package

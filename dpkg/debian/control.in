@@ -9,7 +9,7 @@ Build-Depends:
     libboost-filesystem-dev,
     libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
-#    libmsgsl-dev,      # Can be reactivated once the version is sufficiently up to date on Ubuntu
+    libmsgsl-dev,
     doxygen,
     git,
     doxygen,
