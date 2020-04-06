@@ -56,7 +56,7 @@ stages:
         - sudo pacman -Syu --noconfirm --needed
         - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
-        - make "PREFIX=${pwd}/${ARTIFACT_DIR}" ${MAKE_TARGETS}
+        - make "PREFIX=${PWD}/${ARTIFACT_DIR}" ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
         paths:
