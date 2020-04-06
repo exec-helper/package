@@ -47,16 +47,9 @@ build() {
 }
 
 check() {
-    # It only makes sense to run the complete 'system test suite' (called integration by exec-helper devs) here
-    _exec_helper_test_targets=('integration' 'execution-content' 'docs-man-integration')
-
-    # Only define the cmake settings on top of the ones defined in build()
-    cmake -H"$_git_dir" -B"$_build_dir" -DUSE_SYSTEM_CATCH=ON -DUSE_SYSTEM_RAPIDCHECK=ON -DENABLE_TESTING=ON -DENABLE_WERROR=OFF
-    make --directory "$_build_dir" --jobs ${_nb_of_cores} ${_exec_helper_test_targets[@]}
-
     _install_dir="$pkgdir/usr/"
-    cd $_build_dir
-    PATH="${PWD}/src/applications:${PWD}/test/base-utils/application/:$PATH" "test/integration/exec-helper-integration-test"
+    $_build_dir/src/applications/exec-helper --help 2>/dev/null | grep --silent 'Usage'
+    $_build_dir/src/applications/exec-helper --version 2>/dev/null | grep --silent 'exec-helper'
 }
 
 package_@PACKAGE@() {
