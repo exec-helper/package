@@ -21,12 +21,6 @@ build:
 install: source
 	$(MAKE) generate TARGET=install
 
-
-# Development version
-%-git:
-	$(MAKE) PROJECT_NAME=$(PROJECT_NAME)-git $*
-
-
 # Utility target
 generate:
 	$(MAKE) --directory pkgbuild-generator PROJECT_NAME=$(PROJECT_NAME) "SOURCE_DIR=$(SOURCE_DIR)" "PKG_IN=$(PKG_IN)" "GITCHANGELOG_RC=$(SOURCE_DIR)/.gitchangelog.rc" "BUILD_DIR=$(BUILD_DIR)" "PREFIX=$(PREFIX)" $(TARGET)

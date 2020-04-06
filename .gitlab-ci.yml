@@ -115,15 +115,6 @@ pkgbuild:prepare:
 arch-linux:prepare:
     <<: *pkgbuild_prepare
     image: bverhagen/awesome-aur-wrapper:yay
-    only:
-        - master
-
-arch-linux-git:prepare:
-    <<: *pkgbuild_prepare
-    image: bverhagen/awesome-aur-wrapper:yay
-    variables:
-        MAKE_TARGETS: install-git
-        ARTIFACT_DIR: package-source
 
 pkgbuild:build:
     <<: *pkgbuild_build
@@ -137,15 +128,6 @@ arch-linux:build:
     image: bverhagen/awesome-aur-wrapper:yay
     needs:
         - job: arch-linux:prepare
-          artifacts: true
-    only:
-        - master
-
-arch-linux-git:build:
-    <<: *pkgbuild_build
-    image: bverhagen/awesome-aur-wrapper:yay
-    needs:
-        - job: arch-linux-git:prepare
           artifacts: true
 
 pkgbuild:analyze:
@@ -164,17 +146,6 @@ arch-linux:analyze:
         - job: arch-linux:prepare
           artifacts: true
         - job: arch-linux:build
-          artifacts: true
-    only:
-        - master
-
-arch-linux-git:analyze:
-    <<: *pkgbuild_analyze
-    image: archlinux
-    needs:
-        - job: arch-linux-git:prepare
-          artifacts: true
-        - job: arch-linux-git:build
           artifacts: true
 
 arch-linux:upload:

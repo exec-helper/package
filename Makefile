@@ -27,9 +27,6 @@ find-distribution:
 prepare:
 	$(MAKE) find-distribution TARGET=prepare
 
-prepare-git:
-	$(MAKE) find-distribution TARGET=prepare-git
-
 source:
 	$(MAKE) find-distribution TARGET=source
 
@@ -41,9 +38,6 @@ build-test:
 
 install:
 	$(MAKE) find-distribution TARGET=install
-
-install-git:
-	$(MAKE) find-distribution TARGET=install-git
 
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
