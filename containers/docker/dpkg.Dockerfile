@@ -2,6 +2,11 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE} as builder
 LABEL maintainer="barrie.verhagen@gmail.com"
 
+## Tzdata fix
+ENV DEBIAN_FRONTEND noninteractive    
+COPY containers/docker/debconf /tmp/    
+RUN debconf-set-selections /tmp/debconf && rm /tmp/debconf
+
 # It is required to keep this in order for lsb_release to work
 RUN apt-get update
 

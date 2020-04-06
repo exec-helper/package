@@ -1,2 +1,3 @@
 usr/bin/eh
 usr/bin/exec-helper
+usr/share/exec-helper/plugins/*

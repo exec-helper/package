@@ -17,6 +17,9 @@ stages:
 .install_gitchangelog_debian: &install_gitchangelog_debian
         sudo apt-get --yes install python3 python3-mako curl && sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo chmod +x /usr/local/bin/gitchangelog && [ -f /usr/bin/python ] || ln -s python3 /usr/bin/python
 
+.tzdata_fix: &tzdata_fix
+        export DEBIAN_FRONTEND=noninteractive && echo 'tzdata tzdata/Areas select Europe' > debconf && echo 'tzdata tzdata/Zones/Europe select Brussels' >> debconf && debconf-set-selections debconf
+
 ## This activates the use of the configured private keys in a build pipeline.
 .enable_private_keys: &enable_private_keys
     ## Install ssh-agent if not already installed
@@ -87,8 +90,8 @@ stages:
         PACKAGE_SOURCE: package-source
         BINARY_DIR: binary-package
     script:
-        - sudo pacman -Syu --noconfirm --needed
-        - sudo pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
+        - pacman -Syu --noconfirm --needed
+        - pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
         - namcap ${PACKAGE_SOURCE}/PKGBUILD
         - namcap ${BINARY_DIR}/*.tar.xz
 
@@ -186,6 +189,7 @@ arch-linux:upload:
         MAKE_TARGETS: source
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
+        - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
@@ -203,6 +207,7 @@ arch-linux:upload:
         MAKE_TARGETS: build
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
+        - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
@@ -221,6 +226,7 @@ arch-linux:upload:
         MAKE_TARGETS: build-test
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
+        - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
@@ -237,6 +243,7 @@ arch-linux:upload:
     variables:
         LINTIAN_ARGS: "--no-cfg"
     script:
+        - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes lintian
         - pushd dpkg/package/source && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes
@@ -247,10 +254,12 @@ arch-linux:upload:
 .dpkg:verify: &dpkg_verify
     stage: verify
     script:
+        - *tzdata_fix
         - apt-get update
         - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb || true
         - apt --fix-broken --yes install
         - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb
+        - dpkg -L exec-helper
         - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
         - cd /tmp
         - exec-helper-integration-test
@@ -345,6 +354,7 @@ ubuntu-devel:build:
         - job: ubuntu-devel:prepare
           artifacts: true
     before_script:
+        - *tzdata_fix
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
         - *install_doxygen
@@ -385,6 +395,7 @@ ubuntu-devel:build-test:
     image: ubuntu:devel
     needs: []
     before_script:
+        - *tzdata_fix
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
         - *install_doxygen
@@ -547,6 +558,8 @@ docker:arch-linux:upload:
     needs:
         - job: docker:arch-linux:build
           artifacts: false
+        - job: arch-linux:analyze
+          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:arch-linux"
         TARGET_IMAGE: "bverhagen/exec-helper:arch-linux"
@@ -557,6 +570,10 @@ docker:debian-testing:upload:
     <<: *docker_upload
     needs:
         - job: docker:debian-testing:build
+          artifacts: false
+        - job: debian-testing:analyze
+          artifacts: false
+        - job: debian-testing:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
@@ -569,6 +586,10 @@ docker:ubuntu-rolling:upload:
     needs:
         - job: docker:ubuntu-rolling:build
           artifacts: false
+        - job: ubuntu-rolling:analyze
+          artifacts: false
+        - job: ubuntu-rolling:verify
+          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
         TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-eoan"
@@ -579,6 +600,10 @@ docker:ubuntu-devel:upload:
     <<: *docker_upload
     needs:
         - job: docker:ubuntu-devel:build
+          artifacts: false
+        - job: ubuntu-devel:analyze
+          artifacts: false
+        - job: ubuntu-devel:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"

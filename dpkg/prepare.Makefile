@@ -54,12 +54,15 @@ $(BUILD_DIR)/$(GITCHANGELOG_RC): $(SOURCE_DIR)/$(GITCHANGELOG_RC)
 
 $(BUILD_DIR)/$(CHANGELOG_FILE): $(GITCHANGELOG_TEMPLATE) $(BUILD_DIR)/$(GITCHANGELOG_RC) $(BUILD_DIR) $(BUILD_DIR)/$(COMPAT_FILE)
 	make --directory "$(SOURCE_DIR)" CHANGELOG_CONFIG="$(CURDIR)/$(BUILD_DIR)/$(GITCHANGELOG_RC)" CHANGELOG_OUTPUT="$(CURDIR)/$(BUILD_DIR)/$(CHANGELOG_TEMP)" print-changelog
-	sed -i "s/@UNRELEASED@/$(VERSION)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
+	head $(BUILD_DIR)/$(CHANGELOG_TEMP)
+	sed -i '1,2s/(.*)/($(VERSION))/' $(BUILD_DIR)/$(CHANGELOG_TEMP)
+	head $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	sed -i "s/@PACKAGE@/$(PROJECT_NAME)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	sed -i "s/@DISTRIBUTION@/$(DISTRIBUTION)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	sed -i "s/@MAINTAINER@/$(MAINTAINER)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	sed -i "s/@MAINTAINER_EMAIL@/$(MAINTAINER_EMAIL)/g" $(BUILD_DIR)/$(CHANGELOG_TEMP)
 	mv $(BUILD_DIR)/$(CHANGELOG_TEMP) $(BUILD_DIR)/$(CHANGELOG_FILE)
+	head $(BUILD_DIR)/$(CHANGELOG_FILE)
 
 $(BUILD_DIR)/$(CONTROL_FILE): $(CONTROL_IN) $(BUILD_DIR)/$(COMPAT_FILE)
 	@mkdir -p $(@D)
@@ -74,10 +77,10 @@ $(BUILD_DIR)/$(RULES_FILE): $(RULES_IN) $(BUILD_DIR)/$(COMPAT_FILE)
 	mv $(BUILD_DIR)/$(RULES_TEMP) $(BUILD_DIR)/$(RULES_FILE)
 
 $(DEBIAN_ARCHIVE): $(BUILD_DIR)/$(CONTROL_FILE) $(BUILD_DIR)/$(CHANGELOG_FILE) $(BUILD_DIR)/$(RULES_FILE) $(BUILD_DIR)/$(COMPAT_FILE)
-	tar -c --directory $(BUILD_DIR) --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af $(DEBIAN_ARCHIVE) debian
+	tar -c --directory $(BUILD_DIR) --exclude=$(CONTROL_FILE)_*.in --exclude=$(CHANGELOG_IN) -af build/$(DEBIAN_ARCHIVE) debian
 
 $(SOURCE_ARCHIVE): $(SOURCES)
-	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af $(SOURCE_ARCHIVE) .
+	tar --directory=$(SOURCE_DIR) -c --exclude-vcs --exclude-vcs-ignores --exclude=.gitlab-ci.yml -af build/$(SOURCE_ARCHIVE) .
 
 prepare:: $(DEBIAN_ARCHIVE) $(SOURCE_ARCHIVE)
 
