@@ -128,51 +128,63 @@ arch-linux-git:prepare:
 pkgbuild:build:
     <<: *pkgbuild_build
     image: bverhagen/awesome-aur-wrapper:yay
-    dependencies:
-        - pkgbuild:prepare
+    needs:
+        - job: pkgbuild:prepare
+          artifacts: true
 
 arch-linux:build:
     <<: *pkgbuild_build
     image: bverhagen/awesome-aur-wrapper:yay
-    dependencies:
-        - arch-linux:prepare
+    needs:
+        - job: arch-linux:prepare
+          artifacts: true
     only:
         - master
 
 arch-linux-git:build:
     <<: *pkgbuild_build
     image: bverhagen/awesome-aur-wrapper:yay
-    dependencies:
-        - arch-linux-git:prepare
+    needs:
+        - job: arch-linux-git:prepare
+          artifacts: true
 
 pkgbuild:analyze:
     <<: *pkgbuild_analyze
     image: archlinux
-    dependencies:
-        - pkgbuild:prepare
-        - pkgbuild:build
+    needs:
+        - job: pkgbuild:prepare
+          artifacts: true
+        - job: pkgbuild:build
+          artifacts: true
 
 arch-linux:analyze:
     <<: *pkgbuild_analyze
     image: archlinux
-    dependencies:
-        - arch-linux:prepare
-        - arch-linux:build
+    needs:
+        - job: arch-linux:prepare
+          artifacts: true
+        - job: arch-linux:build
+          artifacts: true
     only:
         - master
 
 arch-linux-git:analyze:
     <<: *pkgbuild_analyze
     image: archlinux
-    dependencies:
-        - arch-linux-git:prepare
-        - arch-linux-git:build
+    needs:
+        - job: arch-linux-git:prepare
+          artifacts: true
+        - job: arch-linux-git:build
+          artifacts: true
 
 arch-linux:upload:
     <<: *pkgbuild_upload
     image: bverhagen/awesome-aur-wrapper:yay
-    dependencies:
-        - arch-linux:prepare
+    needs:
+        - job: arch-linux:prepare
+          artifacts: true
+        - job: arch-linux:analyze
+          artifacts: false
     variables:
         URL: ssh://aur@aur.archlinux.org/exec-helper.git
     only:
@@ -293,34 +305,39 @@ ubuntu-devel:prepare:
 dpkg:source:
     <<: *dpkg_source
     image: debian:testing
-    dependencies:
-        - dpkg:prepare
+    needs:
+        - job: dpkg:prepare
+          artifacts: true
     variables:
         MAKE_TARGETS: dpkg TARGET=source
 
 debian-testing:source:
     <<: *dpkg_source
     image: debian:testing
-    dependencies:
-        - debian-testing:prepare
+    needs:
+        - job: debian-testing:prepare
+          artifacts: true
 
 ubuntu-rolling:source:
     <<: *dpkg_source
     image: ubuntu:rolling
-    dependencies:
-        - ubuntu-rolling:prepare
+    needs:
+        - job: ubuntu-rolling:prepare
+          artifacts: true
 
 ubuntu-devel:source:
     <<: *dpkg_source
     image: ubuntu:devel
-    dependencies:
-        - ubuntu-devel:prepare
+    needs:
+        - job: ubuntu-devel:prepare
+          artifacts: true
 
 dpkg:build:
     <<: *dpkg_build
     image: debian:testing
-    dependencies:
-        - dpkg:prepare
+    needs:
+        - job: dpkg:prepare
+          artifacts: true
     variables:
         MAKE_TARGETS: dpkg TARGET=build
     before_script:
@@ -331,8 +348,9 @@ dpkg:build:
 debian-testing:build:
     <<: *dpkg_build
     image: debian:testing
-    dependencies:
-        - debian-testing:prepare
+    needs:
+        - job: debian-testing:prepare
+          artifacts: true
     before_script:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
@@ -341,8 +359,9 @@ debian-testing:build:
 ubuntu-rolling:build:
     <<: *dpkg_build
     image: ubuntu:rolling
-    dependencies:
-        - ubuntu-rolling:prepare
+    needs:
+        - job: ubuntu-rolling:prepare
+          artifacts: true
     before_script:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
@@ -351,8 +370,9 @@ ubuntu-rolling:build:
 ubuntu-devel:build:
     <<: *dpkg_build
     image: ubuntu:devel
-    dependencies:
-        - ubuntu-devel:prepare
+    needs:
+        - job: ubuntu-devel:prepare
+          artifacts: true
     before_script:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
@@ -361,7 +381,7 @@ ubuntu-devel:build:
 dpkg:build-test:
     <<: *dpkg_build_test
     image: debian:testing
-    dependencies: []
+    needs: []
     variables:
         MAKE_TARGETS: dpkg TARGET=build-test
     before_script:
@@ -372,7 +392,7 @@ dpkg:build-test:
 debian-testing:build-test:
     <<: *dpkg_build_test
     image: debian:testing
-    dependencies: []
+    needs: []
     variables:
         MAKE_TARGETS: dpkg TARGET=build-test
     before_script:
@@ -383,7 +403,7 @@ debian-testing:build-test:
 ubuntu-rolling:build-test:
     <<: *dpkg_build_test
     image: ubuntu:rolling
-    dependencies: []
+    needs: []
     before_script:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
@@ -392,7 +412,7 @@ ubuntu-rolling:build-test:
 ubuntu-devel:build-test:
     <<: *dpkg_build_test
     image: ubuntu:devel
-    dependencies: []
+    needs: []
     before_script:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
@@ -401,68 +421,88 @@ ubuntu-devel:build-test:
 dpkg:analyze:
     <<: *dpkg_analyze
     image: debian:testing
-    dependencies:
-        - dpkg:prepare
-        - dpkg:source
-        - dpkg:build
+    needs:
+        - job: dpkg:prepare
+          artifacts: true
+        - job: dpkg:source
+          artifacts: true
+        - job: dpkg:build
+          artifacts: true
 
 debian-testing:analyze:
     <<: *dpkg_analyze
     image: debian:testing
-    dependencies:
-        - debian-testing:prepare
-        - debian-testing:source
-        - debian-testing:build
+    needs:
+        - job: debian-testing:prepare
+          artifacts: true
+        - job: debian-testing:source
+          artifacts: true
+        - job: debian-testing:build
+          artifacts: true
 
 ubuntu-rolling:analyze:
     <<: *dpkg_analyze
     image: ubuntu:rolling
-    dependencies:
-        - ubuntu-rolling:prepare
-        - ubuntu-rolling:source
-        - ubuntu-rolling:build
+    needs:
+        - job: ubuntu-rolling:prepare
+          artifacts: true
+        - job: ubuntu-rolling:source
+          artifacts: true
+        - job: ubuntu-rolling:build
+          artifacts: true
 
 ubuntu-devel:analyze:
     <<: *dpkg_analyze
     image: ubuntu:devel
-    dependencies:
-        - ubuntu-devel:prepare
-        - ubuntu-devel:source
-        - ubuntu-devel:build
+    needs:
+        - job: ubuntu-devel:prepare
+          artifacts: true
+        - job: ubuntu-devel:source
+          artifacts: true
+        - job: ubuntu-devel:build
+          artifacts: true
 
 dpkg:verify:
     <<: *dpkg_verify
     image: debian:testing
-    dependencies:
-        - dpkg:build
-        - dpkg:build-test
+    needs:
+        - job: dpkg:build
+          artifacts: true
+        - job: dpkg:build-test
+          artifacts: true
 
 debian-testing:verify:
     <<: *dpkg_verify
     image: debian:testing
-    dependencies:
-        - debian-testing:build
-        - debian-testing:build-test
+    needs:
+        - job: debian-testing:build
+          artifacts: true
+        - job: debian-testing:build-test
+          artifacts: true
 
 ubuntu-rolling:verify:
     <<: *dpkg_verify
     image: ubuntu:rolling
-    dependencies:
-        - ubuntu-rolling:build
-        - ubuntu-rolling:build-test
+    needs:
+        - job: ubuntu-rolling:build
+          artifacts: true
+        - job: ubuntu-rolling:build-test
+          artifacts: true
 
 ubuntu-devel:verify:
     <<: *dpkg_verify
     image: ubuntu:devel
-    dependencies:
-        - ubuntu-devel:build
-        - ubuntu-devel:build-test
+    needs:
+        - job: ubuntu-devel:build
+          artifacts: true
+        - job: ubuntu-devel:build-test
+          artifacts: true
 
 ############################################################################### containers  #############################################################
 .docker:build: &docker_build
     stage: build
     image: docker:latest
-    dependencies: []
+    needs: []
     services:
         - docker:dind
     variables:
@@ -479,7 +519,7 @@ ubuntu-devel:verify:
 .docker:upload: &docker_upload
     stage: upload
     image: docker:latest
-    dependencies: []
+    needs: []
     services:
         - docker:dind
     variables:
@@ -497,7 +537,7 @@ ubuntu-devel:verify:
 
 docker:arch-linux:build:
     <<: *docker_build
-    dependencies: []
+    needs: []
     variables:
         IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:arch-linux"
         WORKDIR: "."
@@ -506,7 +546,7 @@ docker:arch-linux:build:
 
 docker:debian-testing:build:
     <<: *docker_build
-    dependencies: []
+    needs: []
     variables:
         IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
         WORKDIR: "."
@@ -515,7 +555,7 @@ docker:debian-testing:build:
 
 docker:ubuntu-rolling:build:
     <<: *docker_build
-    dependencies: []
+    needs: []
     variables:
         IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
         WORKDIR: "."
@@ -524,7 +564,7 @@ docker:ubuntu-rolling:build:
 
 docker:ubuntu-devel:build:
     <<: *docker_build
-    dependencies: []
+    needs: []
     variables:
         IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
         WORKDIR: "."
@@ -533,7 +573,9 @@ docker:ubuntu-devel:build:
 
 docker:arch-linux:upload:
     <<: *docker_upload
-    dependencies: []
+    needs:
+        - job: docker:arch-linux:build
+          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:arch-linux"
         TARGET_IMAGE: "bverhagen/exec-helper:arch-linux"
@@ -542,7 +584,9 @@ docker:arch-linux:upload:
 
 docker:debian-testing:upload:
     <<: *docker_upload
-    dependencies: []
+    needs:
+        - job: docker:debian-testing:build
+          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
         TARGET_IMAGE: "bverhagen/exec-helper:debian-testing"
@@ -551,7 +595,9 @@ docker:debian-testing:upload:
 
 docker:ubuntu-rolling:upload:
     <<: *docker_upload
-    dependencies: []
+    needs:
+        - job: docker:ubuntu-rolling:build
+          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
         TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-eoan"
@@ -560,7 +606,9 @@ docker:ubuntu-rolling:upload:
 
 docker:ubuntu-devel:upload:
     <<: *docker_upload
-    dependencies: []
+    needs:
+        - job: docker:ubuntu-devel:build
+          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
         TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
