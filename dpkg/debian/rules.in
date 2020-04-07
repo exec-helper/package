@@ -39,7 +39,8 @@ override_dh_auto_build-dep:
 override_dh_auto_build: override_dh_auto_build-indep override_dh_auto_build-dep
 
 override_dh_auto_test:
-	# No tests
+	$(build_directory)/src/applications/exec-helper --help 2>/dev/null | grep --silent 'Usage'
+	$(build_directory)/src/applications/exec-helper --version 2>/dev/null | grep --silent 'exec-helper'
 	
 override_dh_auto_install-dep:
 	cmake -DCOMPONENT=runtime -P '$(build_directory)/cmake_install.cmake'

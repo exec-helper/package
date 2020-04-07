@@ -220,24 +220,6 @@ arch-linux:upload:
         paths:
             - dpkg/package/binary
 
-.dpkg:build-test: &dpkg_build_test
-    stage: build
-    variables:
-        MAKE_TARGETS: build-test
-        ADDITIONAL_BUILD_DEPENDENCIES: ""
-    script:
-        - *tzdata_fix
-        - apt-get update
-        - apt-get install --assume-yes debhelper build-essential sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
-        - *install_gitchangelog_debian
-        - *enable_sudo_nobody
-        - echo Making targets= ${MAKE_TARGETS}
-        - sudo -u nobody make ${MAKE_TARGETS}
-    artifacts:
-        expire_in: 1 day
-        paths:
-            - dpkg/test/package
-
 .dpkg:analyze: &dpkg_analyze
     stage: verify
     variables:
@@ -250,19 +232,6 @@ arch-linux:upload:
         - popd
         - pushd dpkg/package/binary && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb
         - popd
-
-.dpkg:verify: &dpkg_verify
-    stage: verify
-    script:
-        - *tzdata_fix
-        - apt-get update
-        - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb || true
-        - apt --fix-broken --yes install
-        - dpkg -i dpkg/package/binary/*.deb dpkg/test/package/*.deb
-        - dpkg -L exec-helper
-        - apt-get --yes install gcc g++ clang make scons clang-tidy cppcheck git valgrind
-        - cd /tmp
-        - exec-helper-integration-test
 
 dpkg:prepare:
     <<: *dpkg_prepare
@@ -359,47 +328,6 @@ ubuntu-devel:build:
         - apt-get install --yes git build-essential make cmake bison flex python3
         - *install_doxygen
 
-dpkg:build-test:
-    <<: *dpkg_build_test
-    image: debian:testing
-    needs: []
-    variables:
-        MAKE_TARGETS: dpkg TARGET=build-test
-    before_script:
-        - apt update
-        - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
-
-debian-testing:build-test:
-    <<: *dpkg_build_test
-    image: debian:testing
-    needs: []
-    variables:
-        MAKE_TARGETS: dpkg TARGET=build-test
-    before_script:
-        - apt update
-        - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
-
-ubuntu-rolling:build-test:
-    <<: *dpkg_build_test
-    image: ubuntu:rolling
-    needs: []
-    before_script:
-        - apt update
-        - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
-
-ubuntu-devel:build-test:
-    <<: *dpkg_build_test
-    image: ubuntu:devel
-    needs: []
-    before_script:
-        - *tzdata_fix
-        - apt update
-        - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
-
 dpkg:analyze:
     <<: *dpkg_analyze
     image: debian:testing
@@ -442,42 +370,6 @@ ubuntu-devel:analyze:
         - job: ubuntu-devel:source
           artifacts: true
         - job: ubuntu-devel:build
-          artifacts: true
-
-dpkg:verify:
-    <<: *dpkg_verify
-    image: debian:testing
-    needs:
-        - job: dpkg:build
-          artifacts: true
-        - job: dpkg:build-test
-          artifacts: true
-
-debian-testing:verify:
-    <<: *dpkg_verify
-    image: debian:testing
-    needs:
-        - job: debian-testing:build
-          artifacts: true
-        - job: debian-testing:build-test
-          artifacts: true
-
-ubuntu-rolling:verify:
-    <<: *dpkg_verify
-    image: ubuntu:rolling
-    needs:
-        - job: ubuntu-rolling:build
-          artifacts: true
-        - job: ubuntu-rolling:build-test
-          artifacts: true
-
-ubuntu-devel:verify:
-    <<: *dpkg_verify
-    image: ubuntu:devel
-    needs:
-        - job: ubuntu-devel:build
-          artifacts: true
-        - job: ubuntu-devel:build-test
           artifacts: true
 
 ############################################################################### containers  #############################################################
@@ -573,8 +465,6 @@ docker:debian-testing:upload:
           artifacts: false
         - job: debian-testing:analyze
           artifacts: false
-        - job: debian-testing:verify
-          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
         TARGET_IMAGE: "bverhagen/exec-helper:debian-testing"
@@ -588,8 +478,6 @@ docker:ubuntu-rolling:upload:
           artifacts: false
         - job: ubuntu-rolling:analyze
           artifacts: false
-        - job: ubuntu-rolling:verify
-          artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
         TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-eoan"
@@ -602,8 +490,6 @@ docker:ubuntu-devel:upload:
         - job: docker:ubuntu-devel:build
           artifacts: false
         - job: ubuntu-devel:analyze
-          artifacts: false
-        - job: ubuntu-devel:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
