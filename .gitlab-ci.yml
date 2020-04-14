@@ -71,7 +71,7 @@ stages:
         BUILD_DIR: package-source
         ARTIFACT_DIR: binary-package
     script: 
-        - sudo pacman -Sy --noconfirm --needed base-devel sudo
+        - sudo pacman -Sy --noconfirm --needed base-devel sudo libffi
         - yay -S --noconfirm --needed rapidcheck microsoft-gsl
         - mkdir --mode 777 --parents "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
