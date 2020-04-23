@@ -50,6 +50,7 @@ check() {
     _install_dir="$pkgdir/usr/"
     $_build_dir/src/applications/exec-helper --help 2>/dev/null | grep --silent 'Usage'
     $_build_dir/src/applications/exec-helper --version 2>/dev/null | grep --silent 'exec-helper'
+    $_build_dir/src/applications/exec-helper --list-plugins 2>/dev/null | grep --silent 'make.lua'
 }
 
 package_@PACKAGE@() {

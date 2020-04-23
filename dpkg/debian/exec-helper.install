@@ -1,3 +1,8 @@
 usr/bin/eh
 usr/bin/exec-helper
 usr/share/exec-helper/plugins/*
+
+# Auto-completions
+usr/share/exec-helper/completions/*
+usr/share/bash-completion/*
+usr/share/zsh/functions/Completion/Unix/*
