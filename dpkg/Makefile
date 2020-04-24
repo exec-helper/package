@@ -41,12 +41,6 @@ source: prepare
 build: prepare
 	$(MAKE) --makefile=$(BUILD_MAKEFILE) DEBIAN_ARCHIVE=$(DEBIAN_ARCHIVE) SOURCE_ARCHIVE=$(SOURCE_ARCHIVE) BUILD_DIR=$(BUILD_DIR)/binary PACKAGE_DIR=$(PACKAGE_DIR)/binary DSC_FILE=$(DSC_FILE)
 
-prepare-test:
-	$(MAKE) --directory test prepare
-
-build-test:
-	$(MAKE) --directory test build
-
 clean:
 	$(MAKE) --makefile=$(PREPARE_MAKEFILE) PROJECT_NAME=$(PROJECT_NAME) BUILD_DIR=$(BUILD_DIR)/prepare DEBIAN_ARCHIVE=$(DEBIAN_ARCHIVE) SOURCE_DIR=$(SOURCE_DIR) SOURCE_FILES=$(SOURCE_FILES) "VERSION=$(VERSION)" DISTRIBUTION=$(DISTRIBUTION) SOURCE_ARCHIVE=$(SOURCE_ARCHIVE) clean
 	$(MAKE) --makefile=$(SOURCE_MAKEFILE) PROJECT_NAME=$(PROJECT_NAME) BUILD_DIR=$(BUILD_DIR)/source PACKAGE_DIR=$(PACKAGE_DIR)/source DEBIAN_ARCHIVE=$(DEBIAN_ARCHIVE) SOURCE_FILES=$(SOURCE_FILES) CHANGES_FILE=$(SOURCE_CHANGES_FILE) SOURCE_ARCHIVE=$(SOURCE_ARCHIVE) clean
@@ -54,9 +48,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(PACKAGE_DIR)
 
-	$(MAKE) --directory test clean
-
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
-.PHONY: prepare source build prepare-test build-test clean all list
+.PHONY: prepare source build clean all list

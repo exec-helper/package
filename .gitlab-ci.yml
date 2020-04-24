@@ -171,6 +171,8 @@ arch-linux:upload:
     variables:
         MAKE_TARGETS: prepare
     script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - apt-get update
         - apt-get install --assume-yes sudo make sed lsb-release git gcc xz-utils python3-pip
         - *install_gitchangelog_debian
@@ -189,6 +191,8 @@ arch-linux:upload:
         MAKE_TARGETS: source
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
@@ -207,6 +211,8 @@ arch-linux:upload:
         MAKE_TARGETS: build
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
@@ -225,6 +231,8 @@ arch-linux:upload:
     variables:
         LINTIAN_ARGS: "--no-cfg"
     script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
         - apt-get install --assume-yes lintian
@@ -290,6 +298,8 @@ dpkg:build:
     variables:
         MAKE_TARGETS: dpkg TARGET=build
     before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
         - *install_doxygen
@@ -301,6 +311,8 @@ debian-testing:build:
         - job: debian-testing:prepare
           artifacts: true
     before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
         - *install_doxygen
@@ -312,6 +324,8 @@ ubuntu-rolling:build:
         - job: ubuntu-rolling:prepare
           artifacts: true
     before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
         - *install_doxygen
@@ -323,6 +337,8 @@ ubuntu-devel:build:
         - job: ubuntu-devel:prepare
           artifacts: true
     before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
