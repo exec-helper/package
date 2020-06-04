@@ -10,8 +10,8 @@ Build-Depends:
     libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
     libmsgsl-dev,
-#    doxygen (>= 1.8.15),
-    graphviz,
+    python3-sphinx,
+    python3-sphinx-rtd-theme,
     git,
     pkg-config
 Standards-Version: 4.1.0

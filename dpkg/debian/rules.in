@@ -29,7 +29,7 @@ copyright := Copyright (c) $(shell date +'%Y') Bart Verhagen
 	dh $@ '--sourcedirectory=${source_directory}' '--builddirectory=${build_directory}' --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_HTML_DOCUMENTATION=ON -DBUILD_MAN_DOCUMENTATION=ON -DENABLE_TESTING=OFF '-DCMAKE_INSTALL_PREFIX=$(prefix)/usr' -DENABLE_WERROR=OFF '-DVERSION=${version}' '-DCOPYRIGHT=${copyright}' -DACTUAL_PLUGINS_INSTALL_PREFIX=/usr/share/exec-helper/plugins
+	dh_auto_configure -- -DUSE_SYSTEM_CATCH=OFF -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF -DBUILD_USAGE_DOCUMENTATION=ON -DBUILD_API_DOCUMENTATION=OFF -DENABLE_TESTING=OFF '-DCMAKE_INSTALL_PREFIX=$(prefix)/usr' -DENABLE_WERROR=OFF '-DVERSION=${version}' '-DCOPYRIGHT=${copyright}' -DACTUAL_PLUGINS_INSTALL_PREFIX=/usr/share/exec-helper/plugins
 
 override_dh_auto_build-indep:
 	dh_auto_build -- docs-html

@@ -45,9 +45,6 @@ stages:
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
 
-.install_doxygen: &install_doxygen
-        git clone https://github.com/doxygen/doxygen.git && pushd doxygen && git checkout Release_1_8_16 && cmake -H. -Bbuild && make -C build && make -C build install && popd
-
 ############################################################################### PKGBUILD #############################################################
 
 .pkgbuild:prepare: &pkgbuild_prepare
@@ -195,7 +192,7 @@ arch-linux:upload:
         - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
@@ -215,7 +212,7 @@ arch-linux:upload:
         - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev doxygen graphviz pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
@@ -302,7 +299,6 @@ dpkg:build:
         - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
 
 debian-testing:build:
     <<: *dpkg_build
@@ -315,7 +311,6 @@ debian-testing:build:
         - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
 
 ubuntu-rolling:build:
     <<: *dpkg_build
@@ -328,7 +323,6 @@ ubuntu-rolling:build:
         - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
 
 ubuntu-devel:build:
     <<: *dpkg_build
@@ -342,7 +336,6 @@ ubuntu-devel:build:
         - *tzdata_fix
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
-        - *install_doxygen
 
 dpkg:analyze:
     <<: *dpkg_analyze

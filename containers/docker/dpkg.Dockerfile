@@ -11,13 +11,10 @@ RUN debconf-set-selections /tmp/debconf && rm /tmp/debconf
 RUN apt-get update
 
 # Install build dependencies
-RUN apt-get install --assume-yes git build-essential make cmake bison flex python3 python3-mako debhelper equivs devscripts sudo lsb-release sed libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev graphviz pkg-config curl
+RUN apt-get install --assume-yes git build-essential make cmake bison flex python3 python3-mako python3-sphinx python3-sphinx-rtd-theme debhelper equivs devscripts sudo lsb-release sed libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config curl
 
 ## Install gitchangelog using the standalone installer
 RUN sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo sh -c 'chmod +x /usr/local/bin/gitchangelog' && [ -f /usr/bin/python ] || ln -s python3 /usr/bin/python
-
-## Install Doxygen
-RUN git clone https://github.com/doxygen/doxygen.git && cd doxygen && git checkout Release_1_8_17 && cmake -H. -Bbuild && make -C build && make -C build install && cd ..
 
 # Build the package
 COPY . /exec-helper
