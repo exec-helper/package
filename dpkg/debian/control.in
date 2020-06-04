@@ -3,7 +3,7 @@ Maintainer: bverhagen <barrie.verhagen@gmail.com>
 Section: misc
 Priority: optional
 Build-Depends: 
-    debhelper (>= 9),
+    debhelper-compat (= 12),
     cmake,
     libboost-program-options-dev,
     libboost-filesystem-dev,
