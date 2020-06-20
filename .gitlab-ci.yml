@@ -216,7 +216,6 @@ arch-linux:upload:
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
-        - pwd
         - sudo -u nobody make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
