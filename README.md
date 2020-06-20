@@ -32,7 +32,7 @@ make prepare
 ## Building a binary, installable package
 Use:
 ```bash
-make build
+make binary
 make install PREFIX=<installation prefix>
 ```
 

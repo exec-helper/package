@@ -16,12 +16,12 @@ RUN sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/ma
 COPY . /exec-helper
 RUN sudo chown -R awesome:awesome /exec-helper
 WORKDIR /exec-helper 
-RUN make TARGET=build arch
+RUN make TARGET=binary arch
 
 
 FROM runtime
 
-# Copy and install pre-build package
+# Copy and install binary package
 COPY --from=builder /exec-helper/pkgbuild/build_package/exec-helper*.tar.xz /tmp/
 RUN sudo pacman -U --noconfirm /tmp/exec-helper*.tar.xz
 RUN rm -rf /tmp/exec-helper*.tar.xz

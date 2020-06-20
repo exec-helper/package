@@ -4,7 +4,7 @@ variables:
 
 stages:
     - prepare
-    - build
+    - binary
     - verify
     - upload
 
@@ -62,8 +62,8 @@ stages:
         paths:
             - package-source
 
-.pkgbuild:build: &pkgbuild_build
-    stage: build
+.pkgbuild:binary: &pkgbuild_binary
+    stage: binary
     variables:
         BUILD_DIR: package-source
         ARTIFACT_DIR: binary-package
@@ -116,15 +116,15 @@ arch-linux:prepare:
     <<: *pkgbuild_prepare
     image: bverhagen/awesome-aur-wrapper:yay
 
-pkgbuild:build:
-    <<: *pkgbuild_build
+pkgbuild:binary:
+    <<: *pkgbuild_binary
     image: bverhagen/awesome-aur-wrapper:yay
     needs:
         - job: pkgbuild:prepare
           artifacts: true
 
-arch-linux:build:
-    <<: *pkgbuild_build
+arch-linux:binary:
+    <<: *pkgbuild_binary
     image: bverhagen/awesome-aur-wrapper:yay
     needs:
         - job: arch-linux:prepare
@@ -136,7 +136,7 @@ pkgbuild:analyze:
     needs:
         - job: pkgbuild:prepare
           artifacts: true
-        - job: pkgbuild:build
+        - job: pkgbuild:binary
           artifacts: true
 
 arch-linux:analyze:
@@ -145,7 +145,7 @@ arch-linux:analyze:
     needs:
         - job: arch-linux:prepare
           artifacts: true
-        - job: arch-linux:build
+        - job: arch-linux:binary
           artifacts: true
 
 arch-linux:upload:
@@ -183,7 +183,7 @@ arch-linux:upload:
             - dpkg/*.tar.xz
 
 .dpkg:source: &dpkg_source
-    stage: build
+    stage: binary
     variables:
         MAKE_TARGETS: source
         ADDITIONAL_BUILD_DEPENDENCIES: ""
@@ -202,10 +202,10 @@ arch-linux:upload:
         paths:
             - dpkg/package/source
 
-.dpkg:build: &dpkg_build
-    stage: build
+.dpkg:binary: &dpkg_binary
+    stage: binary
     variables:
-        MAKE_TARGETS: build
+        MAKE_TARGETS: binary
         ADDITIONAL_BUILD_DEPENDENCIES: ""
     script:
         - export DEBIAN_FRONTEND=noninteractive
@@ -286,22 +286,22 @@ ubuntu-devel:source:
         - job: ubuntu-devel:prepare
           artifacts: true
 
-dpkg:build:
-    <<: *dpkg_build
+dpkg:binary:
+    <<: *dpkg_binary
     image: debian:testing
     needs:
         - job: dpkg:prepare
           artifacts: true
     variables:
-        MAKE_TARGETS: dpkg TARGET=build
+        MAKE_TARGETS: dpkg TARGET=binary
     before_script:
         - export DEBIAN_FRONTEND=noninteractive
         - debconf-set-selections dpkg/debconf
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
 
-debian-testing:build:
-    <<: *dpkg_build
+debian-testing:binary:
+    <<: *dpkg_binary
     image: debian:testing
     needs:
         - job: debian-testing:prepare
@@ -312,8 +312,8 @@ debian-testing:build:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
 
-ubuntu-rolling:build:
-    <<: *dpkg_build
+ubuntu-rolling:binary:
+    <<: *dpkg_binary
     image: ubuntu:rolling
     needs:
         - job: ubuntu-rolling:prepare
@@ -324,8 +324,8 @@ ubuntu-rolling:build:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
 
-ubuntu-devel:build:
-    <<: *dpkg_build
+ubuntu-devel:binary:
+    <<: *dpkg_binary
     image: ubuntu:devel
     needs:
         - job: ubuntu-devel:prepare
@@ -345,7 +345,7 @@ dpkg:analyze:
           artifacts: true
         - job: dpkg:source
           artifacts: true
-        - job: dpkg:build
+        - job: dpkg:binary
           artifacts: true
 
 debian-testing:analyze:
@@ -356,7 +356,7 @@ debian-testing:analyze:
           artifacts: true
         - job: debian-testing:source
           artifacts: true
-        - job: debian-testing:build
+        - job: debian-testing:binary
           artifacts: true
 
 ubuntu-rolling:analyze:
@@ -367,7 +367,7 @@ ubuntu-rolling:analyze:
           artifacts: true
         - job: ubuntu-rolling:source
           artifacts: true
-        - job: ubuntu-rolling:build
+        - job: ubuntu-rolling:binary
           artifacts: true
 
 ubuntu-devel:analyze:
@@ -378,12 +378,12 @@ ubuntu-devel:analyze:
           artifacts: true
         - job: ubuntu-devel:source
           artifacts: true
-        - job: ubuntu-devel:build
+        - job: ubuntu-devel:binary
           artifacts: true
 
 ############################################################################### containers  #############################################################
 .docker:build: &docker_build
-    stage: build
+    stage: binary
     image: docker:latest
     needs: []
     services:

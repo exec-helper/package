@@ -30,11 +30,8 @@ prepare:
 source:
 	$(MAKE) find-distribution TARGET=source
 
-build:
-	$(MAKE) find-distribution TARGET=build
-
-build-test:
-	$(MAKE) find-distribution TARGET=build-test
+binary:
+	$(MAKE) find-distribution TARGET=binary
 
 install:
 	$(MAKE) find-distribution TARGET=install
@@ -42,4 +39,4 @@ install:
 list:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
-.PHONY: pkgbuild dpkg debian ubuntu find-distribution list all prepare%
+.PHONY: pkgbuild dpkg arch debian ubuntu find-distribution list all prepare source binary clean%

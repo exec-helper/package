@@ -15,7 +15,7 @@ prepare:
 
 source: prepare
 
-build:
+binary:
 	$(MAKE) generate TARGET=build
 
 install: source

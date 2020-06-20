@@ -20,13 +20,13 @@ RUN sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/ma
 COPY . /exec-helper
 WORKDIR /exec-helper 
 RUN chmod a+w dpkg
-RUN sudo -u nobody make -C dpkg build
+RUN sudo -u nobody make -C dpkg binary
 
 
 # Install the package in a 'clean' environment
 FROM ${BASE_IMAGE}
 LABEL maintainer="barrie.verhagen@gmail.com"
 
-# Copy and install pre-build package
+# Copy and install binary package
 COPY --from=builder /exec-helper/dpkg/package/binary/exec-helper_*.deb /exec-helper/dpkg/package/binary/exec-helper-docs*.deb /tmp/
 RUN apt-get update && sh -c "dpkg -i /tmp/exec-helper*.deb || true" && apt-get --fix-broken --yes install && dpkg -i /tmp/exec-helper*.deb && apt-get clean && rm -rf /var/lib/apt/lists/* && rm /tmp/exec-helper*.deb
