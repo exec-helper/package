@@ -1,6 +1,6 @@
 [submodule "exec-helper"]
 	path = exec-helper
-    url = ../../bverhagen/exec-helper.git
+    url = ../source.git
 [submodule "pkgbuild/pkgbuild-generator"]
 	path = pkgbuild/pkgbuild-generator
 	url = https://github.com/VerhagenConsultancy/pkgbuild-generator.git
