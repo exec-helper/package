@@ -1,16 +1,16 @@
 # Maintainer: Bart Verhagen <barrie.verhagen@gmail.com>
-pkgname=('@PACKAGE@' '@PACKAGE@-docs')
+pkgname='@PACKAGE@'
 pkgbase='@PACKAGE@'
 pkgver=@VERSION@
 pkgrel=@PKGREL@
 epoch=@EPOCH@
 pkgdesc="How To Get Coffee In Peace: a shell meta-wrapper"
 arch=('i686' 'x86_64')
-url="https://github.com/bverhagen/exec-helper"
+url="https://github.com/exec-helper/source"
 license=('GPL3')
 groups=()
-depends=(yaml-cpp boost-libs)
-makedepends=(cmake boost make python-sphinx python-sphinx_rtd_theme git pkg-config microsoft-gsl lsb-release)
+depends=(yaml-cpp boost-libs lua)
+makedepends=(meson cmake boost python-sphinx python-sphinx_rtd_theme git pkg-config microsoft-gsl lsb-release)
 checkdepends=(catch2 rapidcheck)
 optdepends=()
 provides=()
@@ -20,13 +20,11 @@ backup=()
 options=()
 install=
 changelog=@CHANGELOG@
-source=('@PACKAGE@::git+https://github.com/bverhagen/exec-helper.git#@GIT_REF@')
+source=('@PACKAGE@::git+https://github.com/exec-helper/source.git#@GIT_REF@')
 noextract=()
 validpgpkeys=()
 
 _build_dir='build'
-
-_nb_of_cores=$(grep -c ^processor /proc/cpuinfo)
 
 pkgver() {
     printf "%s" $pkgver
@@ -42,8 +40,8 @@ build() {
     _exec_helper_build_targets=('exec-helper' 'docs-man')
     _exec_helper_docs_build_targets=('docs-html')
 
-    cmake -G "Unix Makefiles" -H"$_git_dir" -B"$_build_dir" -DCMAKE_INSTALL_PREFIX="$pkgdir/usr/" -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_YAML_CPP=ON -DUSE_SYSTEM_GSL=ON -DBUILD_USAGE_DOCUMENTATION=ON -DBUILD_API_DOCUMENTATION=OFF -DENABLE_TESTING=OFF -DENABLE_WERROR=OFF -DVERSION="$_release_version" -DCOPYRIGHT="$_copyright" -DACTUAL_PLUGINS_INSTALL_PREFIX=/usr/share/exec-helper/plugins
-    make --directory "$_build_dir" --jobs ${_nb_of_cores} ${_exec_helper_build_targets[@]} ${_exec_helper_docs_build_targets[@]}
+	meson setup --buildtype debugoptimized --prefix "$pkgdir/usr/" -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "version=$_release_version" -D "copyright=$_copyright" -D "use-system-yaml=enabled" -D "use-system-gsl=enabled" -D "use-system-lua=enabled" "$_build_dir" "$_git_dir"
+	meson compile -C "$_build_dir"
 }
 
 check() {
@@ -53,18 +51,8 @@ check() {
 	$_build_dir/src/applications/exec-helper --list-plugins "--additional-search-path=$_git_dir/src/plugins/src/scripts" 2>/dev/null | grep --silent 'make.lua'
 }
 
-package_@PACKAGE@() {
-    cmake -DCOMPONENT=runtime -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -P "$_build_dir/cmake_install.cmake"
-    cmake -DCOMPONENT=docs-man -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -P "$_build_dir/cmake_install.cmake"
-}
-
-package_@PACKAGE@-docs() {
-	# options and directives that can be overridden
-	pkgdesc="HTML API documentation for exec-helper"
-    arch=('any')
-	depends=()
-
-    cmake -DCOMPONENT=docs-html -DCMAKE_INSTALL_PREFIX="$pkgdir/usr" -P "$_build_dir/cmake_install.cmake"
+package() {
+	meson install -C "$_build_dir" --no-rebuild
 }
 
 md5sums=('SKIP')

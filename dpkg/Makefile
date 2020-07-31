@@ -24,7 +24,7 @@ PACKAGE_DIR:=package
 
 DEBIAN_ARCHIVE=debian.tar.xz
 SOURCE_ARCHIVE:=$(PROJECT_NAME)_$(SOURCE_VERSION).orig.tar.xz
-SOURCE_FILES:=CMakeLists.txt
+SOURCE_FILES:=meson.build
 
 PREPARE_MAKEFILE:=prepare.Makefile
 SOURCE_MAKEFILE:=source.Makefile

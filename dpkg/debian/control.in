@@ -4,6 +4,7 @@ Section: misc
 Priority: optional
 Build-Depends: 
     debhelper-compat (= 12),
+    meson,
     cmake,
     libboost-program-options-dev,
     libboost-filesystem-dev,
@@ -30,14 +31,4 @@ Depends:
     ${misc:Depends}
 Description: How To Get Coffee In Peace: a shell meta-wrapper
  This package provides the exec-helper binaries and the man-page documentation.
-Homepage: https://github.com/bverhagen/exec-helper
-
-Package: exec-helper-docs
-Architecture: all
-Section: doc
-Priority: optional
-Depends:
-    ${misc:Depends}
-Description: HTML API documentation for exec-helper
- This package provides the API documentation for exec-helper in HTML format.
 Homepage: https://github.com/bverhagen/exec-helper

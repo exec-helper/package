@@ -1,9 +1,0 @@
-Document: exec-helper
-Title: Exec-helper Manual and API Documentation
-Author: Bart Verhagen
-Abstract: This manual describes what exec-helper is, and how it can be used
-Section: File Management
-
-Format: HTML
-Index: /usr/share/doc/exec-helper/html/index.html
-Files: /usr/share/doc/exec-helper/html/*

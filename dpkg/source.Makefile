@@ -3,7 +3,7 @@ BUILD_DIR?=dpkg_source
 PACKAGE_DIR?=package_source
 DEBIAN_ARCHIVE?=debian.tar.xz
 SOURCE_ARCHIVE?=$(PROJECT_NAME)*.orig.tar.gz
-SOURCE_FILES?=CMakeLists.txt
+SOURCE_FILES?=meson.build
 DSC_FILE?=*.dsc
 CHANGES_FILE?=*.changes
 

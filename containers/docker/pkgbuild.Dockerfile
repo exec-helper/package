@@ -2,14 +2,14 @@ FROM bverhagen/awesome-aur-wrapper AS runtime
 LABEL maintainer="barrie.verhagen@gmail.com"
 
 # Install runtime dependencies
-RUN sudo pacman -Sy --needed --noconfirm yaml-cpp boost-libs && sudo pacman -Scc --noconfirm
+RUN sudo pacman -Sy --needed --noconfirm yaml-cpp boost-libs lua && sudo pacman -Scc --noconfirm
 
 
 FROM runtime as builder
 
 # Install build dependencies
-RUN sudo pacman -Sy --needed --noconfirm base-devel cmake boost make python-sphinx python-sphinx_rtd_theme git pkg-config lsb-release python libffi && sudo pacman -Scc --noconfirm
-RUN yay -Sy --needed --noconfirm microsoft-gsl && sudo pacman -Scc --noconfirm && sudo rm -rf /tmp/makepkg && sudo rm -rf ~/.cache
+RUN sudo pacman -Sy --needed --noconfirm base-devel meson cmake boost microsoft-gsl python-sphinx python-sphinx_rtd_theme git pkg-config lsb-release python libffi && sudo pacman -Scc --noconfirm
+
 ## Install gitchangelog using the standalone installer
 RUN sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/master/src/gitchangelog/gitchangelog.py > /usr/local/bin/gitchangelog' && sudo sh -c 'chmod +x /usr/local/bin/gitchangelog'
 

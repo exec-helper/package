@@ -4,7 +4,7 @@ DEBIAN_ARCHIVE?=DEBIAN.tar.xz
 SOURCE_ARCHIVE?=SOURCE.orig.tar.xz
 
 DEBIAN_FOLDER:=debian
-SOURCE_FILES:=CMakeLists.txt
+SOURCE_FILES:=meson.build
 CHANGES_FILE:=*.changes
 EXTRACT_DIR:=$(BUILD_DIR)/build
 

@@ -5,6 +5,7 @@ variables:
 stages:
     - prepare
     - binary
+    - lint
     - verify
     - upload
 
@@ -45,6 +46,29 @@ stages:
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
 
+.verify: &verify
+    script:
+        # Test the package
+        ## Binaries are properly installed
+        - which eh
+        - which exec-helper
+        - ls /usr/bin/eh
+        - ls /usr/bin/exec-helper
+        - eh --version
+        - exec-helper --version
+        ## Man-pages are properly installed
+        #- man --pager=echo exec-helper
+        #- man --pager=echo eh
+        #- man --pager=echo exec-helper-config
+        - ls /usr/share/man/man1/eh.1.gz
+        - ls /usr/share/man/man1/exec-helper.1.gz
+        - ls /usr/share/man/man5/exec-helper-config.5.gz
+        ## Check completions
+        - ls /usr/share/bash-completion/eh
+        - ls /usr/share/bash-completion/exec-helper
+        - ls /usr/share/zsh/functions/Completion/Unix/_eh
+        - ls /usr/share/zsh/functions/Completion/Unix/_exec-helper
+
 ############################################################################### PKGBUILD #############################################################
 
 .pkgbuild:prepare: &pkgbuild_prepare
@@ -69,7 +93,7 @@ stages:
         ARTIFACT_DIR: binary-package
     script: 
         - sudo pacman -Sy --noconfirm --needed base-devel sudo libffi
-        - yay -S --noconfirm --needed rapidcheck microsoft-gsl
+        - yay -S --noconfirm --needed rapidcheck python-gitchangelog
         - mkdir --mode 777 --parents "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
         - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"
@@ -81,8 +105,8 @@ stages:
         paths:
             - binary-package
 
-.pkgbuild:analyze: &pkgbuild_analyze
-    stage: verify
+.pkgbuild:lint: &pkgbuild_lint
+    stage: lint
     variables:
         PACKAGE_SOURCE: package-source
         BINARY_DIR: binary-package
@@ -91,6 +115,19 @@ stages:
         - pacman -S --noconfirm --needed namcap yaml-cpp boost-libs gcc-libs
         - namcap ${PACKAGE_SOURCE}/PKGBUILD
         - namcap ${BINARY_DIR}/*.tar.xz
+
+.pkgbuild:verify: &pkgbuild_verify
+    <<: *verify
+    stage: verify
+    variables:
+        BINARY_DIR: binary-package
+    before_script:
+        - pacman -Syu --noconfirm --needed which
+        # Activate installation of man page etc.
+        - sed -i 's/NoExtract.*$//g' /etc/pacman.conf
+        # Install binary package
+        - pacman -U --noconfirm ${BINARY_DIR}/exec-helper-*.pkg.tar.xz
+        - ls -l /usr/share/man/man1/
 
 .pkgbuild:upload: &pkgbuild_upload
     stage: upload
@@ -130,8 +167,8 @@ arch-linux:binary:
         - job: arch-linux:prepare
           artifacts: true
 
-pkgbuild:analyze:
-    <<: *pkgbuild_analyze
+pkgbuild:lint:
+    <<: *pkgbuild_lint
     image: archlinux
     needs:
         - job: pkgbuild:prepare
@@ -139,12 +176,26 @@ pkgbuild:analyze:
         - job: pkgbuild:binary
           artifacts: true
 
-arch-linux:analyze:
-    <<: *pkgbuild_analyze
+arch-linux:lint:
+    <<: *pkgbuild_lint
     image: archlinux
     needs:
         - job: arch-linux:prepare
           artifacts: true
+        - job: arch-linux:binary
+          artifacts: true
+
+pkgbuild:verify:
+    <<: *pkgbuild_verify
+    image: archlinux
+    needs:
+        - job: pkgbuild:binary
+          artifacts: true
+
+arch-linux:verify:
+    <<: *pkgbuild_verify
+    image: archlinux
+    needs:
         - job: arch-linux:binary
           artifacts: true
 
@@ -154,7 +205,9 @@ arch-linux:upload:
     needs:
         - job: arch-linux:prepare
           artifacts: true
-        - job: arch-linux:analyze
+        - job: arch-linux:lint
+          artifacts: false
+        - job: arch-linux:verify
           artifacts: false
     variables:
         URL: ssh://aur@aur.archlinux.org/exec-helper.git
@@ -192,7 +245,7 @@ arch-linux:upload:
         - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme meson cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config liblua5.3-dev ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
@@ -212,7 +265,7 @@ arch-linux:upload:
         - debconf-set-selections dpkg/debconf
         - *tzdata_fix
         - apt-get update
-        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config ${ADDITIONAL_BUILD_DEPENDENCIES}
+        - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme meson cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config liblua5.3-dev ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
@@ -222,8 +275,8 @@ arch-linux:upload:
         paths:
             - dpkg/package/binary
 
-.dpkg:analyze: &dpkg_analyze
-    stage: verify
+.dpkg:lint: &dpkg_lint
+    stage: lint
     variables:
         LINTIAN_ARGS: "--no-cfg"
     script:
@@ -236,6 +289,19 @@ arch-linux:upload:
         - popd
         - pushd dpkg/package/binary && lintian ${LINTIAN_ARGS} --allow-root *.dsc *.changes *.deb
         - popd
+
+.dpkg:verify: &dpkg_verify
+    <<: *verify
+    stage: verify
+    before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
+        - *tzdata_fix
+        - apt-get update
+        # Prevent man-pages, translations etc. from being excluded because of minimization efforts
+        - rm -f /etc/dpkg/dpkg.cfg.d/excludes
+        # Install binary package
+        - sh -c "dpkg -i dpkg/package/binary/exec-helper*.deb || true" && apt-get --fix-broken --yes install && dpkg -i dpkg/package/binary/exec-helper*.deb
 
 dpkg:prepare:
     <<: *dpkg_prepare
@@ -336,8 +402,8 @@ ubuntu-devel:binary:
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
 
-dpkg:analyze:
-    <<: *dpkg_analyze
+dpkg:lint:
+    <<: *dpkg_lint
     image: debian:testing
     needs:
         - job: dpkg:prepare
@@ -347,8 +413,8 @@ dpkg:analyze:
         - job: dpkg:binary
           artifacts: true
 
-debian-testing:analyze:
-    <<: *dpkg_analyze
+debian-testing:lint:
+    <<: *dpkg_lint
     image: debian:testing
     needs:
         - job: debian-testing:prepare
@@ -358,8 +424,8 @@ debian-testing:analyze:
         - job: debian-testing:binary
           artifacts: true
 
-ubuntu-rolling:analyze:
-    <<: *dpkg_analyze
+ubuntu-rolling:lint:
+    <<: *dpkg_lint
     image: ubuntu:rolling
     needs:
         - job: ubuntu-rolling:prepare
@@ -369,14 +435,42 @@ ubuntu-rolling:analyze:
         - job: ubuntu-rolling:binary
           artifacts: true
 
-ubuntu-devel:analyze:
-    <<: *dpkg_analyze
+ubuntu-devel:lint:
+    <<: *dpkg_lint
     image: ubuntu:devel
     needs:
         - job: ubuntu-devel:prepare
           artifacts: true
         - job: ubuntu-devel:source
           artifacts: true
+        - job: ubuntu-devel:binary
+          artifacts: true
+
+dpkg:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    needs:
+        - job: dpkg:binary
+          artifacts: true
+
+debian-testing:verify:
+    <<: *dpkg_verify
+    image: debian:testing
+    needs:
+        - job: debian-testing:binary
+          artifacts: true
+
+ubuntu-rolling:verify:
+    <<: *dpkg_verify
+    image: ubuntu:rolling
+    needs:
+        - job: ubuntu-rolling:binary
+          artifacts: true
+
+ubuntu-devel:verify:
+    <<: *dpkg_verify
+    image: ubuntu:devel
+    needs:
         - job: ubuntu-devel:binary
           artifacts: true
 
@@ -458,7 +552,9 @@ docker:arch-linux:upload:
     needs:
         - job: docker:arch-linux:build
           artifacts: false
-        - job: arch-linux:analyze
+        - job: arch-linux:lint
+          artifacts: false
+        - job: arch-linux:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:arch-linux"
@@ -471,7 +567,9 @@ docker:debian-testing:upload:
     needs:
         - job: docker:debian-testing:build
           artifacts: false
-        - job: debian-testing:analyze
+        - job: debian-testing:lint
+          artifacts: false
+        - job: debian-testing:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
@@ -484,7 +582,9 @@ docker:ubuntu-rolling:upload:
     needs:
         - job: docker:ubuntu-rolling:build
           artifacts: false
-        - job: ubuntu-rolling:analyze
+        - job: ubuntu-rolling:lint
+          artifacts: false
+        - job: ubuntu-rolling:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
@@ -497,7 +597,9 @@ docker:ubuntu-devel:upload:
     needs:
         - job: docker:ubuntu-devel:build
           artifacts: false
-        - job: ubuntu-devel:analyze
+        - job: ubuntu-devel:lint
+          artifacts: false
+        - job: ubuntu-devel:verify
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
