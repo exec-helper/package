@@ -488,7 +488,7 @@ docker:ubuntu-rolling:upload:
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
-        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-eoan"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
     only:
         - master
 
@@ -501,6 +501,6 @@ docker:ubuntu-devel:upload:
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
-        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-groovy"
     only:
         - master
