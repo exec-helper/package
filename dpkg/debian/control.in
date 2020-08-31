@@ -10,9 +10,11 @@ Build-Depends:
     libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
     libmsgsl-dev,
+    libluajit-5.1-dev,
     python3-sphinx,
     python3-sphinx-rtd-theme,
     git,
+    lsb-release,
     pkg-config
 Standards-Version: 4.1.0
 Homepage: https://github.com/bverhagen/exec-helper
