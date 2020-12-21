@@ -93,7 +93,7 @@ stages:
         ARTIFACT_DIR: binary-package
     script: 
         - sudo pacman -Sy --noconfirm --needed base-devel sudo libffi
-        - yay -S --noconfirm --needed rapidcheck python-gitchangelog
+        - yay -S --noconfirm --needed python-gitchangelog
         - mkdir --mode 777 --parents "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
         - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"

@@ -6,12 +6,12 @@ pkgrel=@PKGREL@
 epoch=@EPOCH@
 pkgdesc="How To Get Coffee In Peace: a shell meta-wrapper"
 arch=('i686' 'x86_64')
-url="https://github.com/exec-helper/source"
-license=('GPL3')
+url="https://github.com/bverhagen/exec-helper"
+license=('BSD')
 groups=()
-depends=(yaml-cpp boost-libs lua)
-makedepends=(meson cmake boost python-sphinx python-sphinx_rtd_theme git pkg-config microsoft-gsl lsb-release)
-checkdepends=(catch2 rapidcheck)
+depends=(yaml-cpp boost-libs lua53)
+makedepends=(meson cmake boost ninja python-sphinx python-sphinx_rtd_theme pkg-config microsoft-gsl lsb-release)
+checkdepends=()
 optdepends=()
 provides=()
 conflicts=()
@@ -20,10 +20,11 @@ backup=()
 options=()
 install=
 changelog=@CHANGELOG@
-source=('@PACKAGE@::git+https://github.com/exec-helper/source.git#@GIT_REF@')
+source=('@PACKAGE@::https://github.com/exec-helper/source/archive/@GIT_REF@.tar.gz')
 noextract=()
 validpgpkeys=()
 
+_source_dir='source-@GIT_REF@'
 _build_dir='build'
 
 pkgver() {
@@ -36,23 +37,19 @@ build() {
     _release_version="($_system_description) $_source_version"
     _copyright="Copyright (c) $(date +'%Y') Bart Verhagen"
 
-    _git_dir="@PACKAGE@"
-    _exec_helper_build_targets=('exec-helper' 'docs-man')
-    _exec_helper_docs_build_targets=('docs-html')
-
-	meson setup --buildtype debugoptimized --prefix "$pkgdir/usr/" -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "version=$_release_version" -D "copyright=$_copyright" -D "use-system-yaml=enabled" -D "use-system-gsl=enabled" -D "use-system-lua=enabled" "$_build_dir" "$_git_dir"
-	meson compile -C "$_build_dir"
+    arch-meson "$_source_dir" "$_build_dir" -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "version=$_release_version" -D "copyright=$_copyright" -D "use-system-yaml-cpp=enabled" -D "use-system-gsl=enabled" -D "use-system-lua=enabled"
+    meson compile -C "$_build_dir"
 }
 
 check() {
     _install_dir="$pkgdir/usr/"
-    $_build_dir/src/applications/exec-helper --help 2>/dev/null | grep --silent 'Usage'
-    $_build_dir/src/applications/exec-helper --version 2>/dev/null | grep --silent 'exec-helper'
-	$_build_dir/src/applications/exec-helper --list-plugins "--additional-search-path=$_git_dir/src/plugins/src/scripts" 2>/dev/null | grep --silent 'make.lua'
+    "$_build_dir/src/applications/exec-helper" --help | grep --silent 'Usage'
+    "$_build_dir/src/applications/exec-helper" --version | grep --silent 'exec-helper'
+	"$_build_dir/src/applications/exec-helper" --list-plugins "--additional-search-path=$_source_dir/src/plugins/src/scripts" | grep --silent 'make.lua'
 }
 
 package() {
-	meson install -C "$_build_dir" --no-rebuild
+    DESTDIR="$pkgdir" meson install -C "$_build_dir" --no-rebuild
 }
 
 md5sums=('SKIP')
