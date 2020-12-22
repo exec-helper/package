@@ -350,6 +350,7 @@ ubuntu-devel:source:
     needs:
         - job: ubuntu-devel:prepare
           artifacts: true
+    allow_failure: true
 
 dpkg:binary:
     <<: *dpkg_binary
@@ -401,6 +402,7 @@ ubuntu-devel:binary:
         - *tzdata_fix
         - apt update
         - apt-get install --yes git build-essential make cmake bison flex python3
+    allow_failure: true
 
 dpkg:lint:
     <<: *dpkg_lint
@@ -546,6 +548,7 @@ docker:ubuntu-devel:build:
         WORKDIR: "."
         DOCKERFILE: "containers/docker/dpkg.Dockerfile"
         DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:devel"
+    allow_failure: true
 
 docker:arch-linux:upload:
     <<: *docker_upload
@@ -606,3 +609,4 @@ docker:ubuntu-devel:upload:
         TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-groovy"
     only:
         - master
+    allow_failure: true
