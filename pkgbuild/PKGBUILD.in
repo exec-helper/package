@@ -6,7 +6,7 @@ pkgrel=@PKGREL@
 epoch=@EPOCH@
 pkgdesc="How To Get Coffee In Peace: a shell meta-wrapper"
 arch=('i686' 'x86_64')
-url="https://github.com/bverhagen/exec-helper"
+url="https://github.com/exec-helper/source"
 license=('BSD')
 groups=()
 depends=(yaml-cpp boost-libs lua53)
@@ -20,7 +20,7 @@ backup=()
 options=()
 install=
 changelog=@CHANGELOG@
-source=('@PACKAGE@::https://github.com/exec-helper/source/archive/@GIT_REF@.tar.gz')
+source=("@PACKAGE@::$url/archive/@GIT_REF@.tar.gz")
 noextract=()
 validpgpkeys=()
 

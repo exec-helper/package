@@ -2,7 +2,7 @@ Source: exec-helper
 Maintainer: bverhagen <barrie.verhagen@gmail.com>
 Section: misc
 Priority: optional
-Build-Depends: 
+Build-Depends:
     debhelper-compat (= 12),
     meson,
     cmake,
@@ -11,7 +11,7 @@ Build-Depends:
     libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
     libmsgsl-dev,
-    libluajit-5.1-dev,
+    liblua5.3-dev,
     python3-sphinx,
     python3-sphinx-rtd-theme,
     git,
