@@ -25,23 +25,23 @@ stages:
 .enable_private_keys: &enable_private_keys
     ## Install ssh-agent if not already installed
     - 'which ssh-agent || sudo pacman -Sy --noconfirm --needed openssh'
-  
+
     ## Run ssh-agent
     - eval $(ssh-agent -s)
-  
+
     ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
     ## We're using tr to fix line endings which makes ed25519 keys work without extra base64 encoding. (https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556)
     ##
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-  
+
     ## Create the SSH directory and give it the right permissions
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-  
+
     ## Set the user name and and email for git commands
     - git config --global user.email "unknown@unknown.com"
     - git config --global user.name "Gitlab CI Runner"
-  
+
     ## Set known hosts using the configurable SSH_KNOWN_HOSTS variable
     - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
@@ -91,7 +91,7 @@ stages:
     variables:
         BUILD_DIR: package-source
         ARTIFACT_DIR: binary-package
-    script: 
+    script:
         - sudo pacman -Sy --noconfirm --needed base-devel sudo libffi
         - yay -S --noconfirm --needed python-gitchangelog
         - mkdir --mode 777 --parents "${ARTIFACT_DIR}"
@@ -313,6 +313,10 @@ debian-testing:prepare:
     <<: *dpkg_prepare
     image: debian:testing
 
+ubuntu-focal:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:focal
+
 ubuntu-rolling:prepare:
     <<: *dpkg_prepare
     image: ubuntu:rolling
@@ -335,6 +339,13 @@ debian-testing:source:
     image: debian:testing
     needs:
         - job: debian-testing:prepare
+          artifacts: true
+
+ubuntu-focal:source:
+    <<: *dpkg_source
+    image: ubuntu:focal
+    needs:
+        - job: ubuntu-focal:prepare
           artifacts: true
 
 ubuntu-rolling:source:
@@ -371,6 +382,18 @@ debian-testing:binary:
     image: debian:testing
     needs:
         - job: debian-testing:prepare
+          artifacts: true
+    before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+
+ubuntu-focal:binary:
+    <<: *dpkg_binary
+    image: ubuntu:focal
+    needs:
+        - job: ubuntu-focal:prepare
           artifacts: true
     before_script:
         - export DEBIAN_FRONTEND=noninteractive
@@ -426,6 +449,17 @@ debian-testing:lint:
         - job: debian-testing:binary
           artifacts: true
 
+ubuntu-focal:lint:
+    <<: *dpkg_lint
+    image: ubuntu:focal
+    needs:
+        - job: ubuntu-focal:prepare
+          artifacts: true
+        - job: ubuntu-focal:source
+          artifacts: true
+        - job: ubuntu-focal:binary
+          artifacts: true
+
 ubuntu-rolling:lint:
     <<: *dpkg_lint
     image: ubuntu:rolling
@@ -460,6 +494,13 @@ debian-testing:verify:
     image: debian:testing
     needs:
         - job: debian-testing:binary
+          artifacts: true
+
+ubuntu-focal:verify:
+    <<: *dpkg_verify
+    image: ubuntu:focal
+    needs:
+        - job: ubuntu-focal:binary
           artifacts: true
 
 ubuntu-rolling:verify:
@@ -531,6 +572,15 @@ docker:debian-testing:build:
         DOCKERFILE: "containers/docker/dpkg.Dockerfile"
         DOCKER_ARGS: "--build-arg BASE_IMAGE=debian:testing"
 
+docker:ubuntu-focal:build:
+    <<: *docker_build
+    needs: []
+    variables:
+        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-focal"
+        WORKDIR: "."
+        DOCKERFILE: "containers/docker/dpkg.Dockerfile"
+        DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:focal"
+
 docker:ubuntu-rolling:build:
     <<: *docker_build
     needs: []
@@ -580,6 +630,21 @@ docker:debian-testing:upload:
     only:
         - master
 
+docker:ubuntu-focal:upload:
+    <<: *docker_upload
+    needs:
+        - job: docker:ubuntu-focal:build
+          artifacts: false
+        - job: ubuntu-focal:lint
+          artifacts: false
+        - job: ubuntu-focal:verify
+          artifacts: false
+    variables:
+        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-focal"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
+    only:
+        - master
+
 docker:ubuntu-rolling:upload:
     <<: *docker_upload
     needs:
@@ -591,7 +656,7 @@ docker:ubuntu-rolling:upload:
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-rolling"
-        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-rolling"
     only:
         - master
 
@@ -606,7 +671,7 @@ docker:ubuntu-devel:upload:
           artifacts: false
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-devel"
-        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-groovy"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-devel"
     only:
         - master
     allow_failure: true
