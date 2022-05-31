@@ -9,8 +9,8 @@ arch=('i686' 'x86_64')
 url="https://github.com/exec-helper/source"
 license=('BSD')
 groups=()
-depends=(yaml-cpp boost-libs lua53)
-makedepends=(meson cmake boost ninja python-sphinx python-sphinx_rtd_theme pkg-config microsoft-gsl lsb-release)
+depends=()
+makedepends=(meson cmake boost ninja python-sphinx python-sphinx_rtd_theme pkg-config microsoft-gsl lsb-release yaml-cpp boost-libs lua53)
 checkdepends=()
 optdepends=()
 provides=()
@@ -37,7 +37,7 @@ build() {
     _release_version="($_system_description) $_source_version"
     _copyright="Copyright (c) $(date +'%Y') Bart Verhagen"
 
-    arch-meson "$_source_dir" "$_build_dir" --unity on -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "version=$_release_version" -D "copyright=$_copyright" -D "use-system-yaml-cpp=enabled" -D "use-system-gsl=enabled" -D "use-system-lua=enabled"
+    arch-meson "$_source_dir" "$_build_dir" --unity on -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "use-system-yaml-cpp=enabled" -D "use-system-gsl=enabled" -D "use-system-lua=enabled" -D "use-system-catch2=enabled" -D "use-system-rapidcheck=enabled" -D "use-static-boost=true" -D "version=$_release_version" -D "copyright=$_copyright"
     meson compile -C "$_build_dir"
 }
 
