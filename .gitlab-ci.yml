@@ -252,6 +252,7 @@ arch-linux:upload:
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
         - git -C exec-helper fetch --tags
+        - git -C exec-helper describe --long "--match=*.*.*"
         - make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
