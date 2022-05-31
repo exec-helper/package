@@ -80,6 +80,7 @@ stages:
         - sudo pacman -Syu --noconfirm --needed
         - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
+        - git config --global --add safe.directory '${CI_BUILDS_DIR}/exec-helper'
         - make "PREFIX=${PWD}/${ARTIFACT_DIR}" ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day

@@ -3,7 +3,7 @@ MAINTAINER?=maintainer
 MAINTAINER_EMAIL?=maintainer@exec-helper.xyz
 
 SOURCE_DIR:=../$(PROJECT_NAME)
-GIT_VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) -n1 --pretty=format:g%h)
+GIT_VERSION:=$(shell git -C $(SOURCE_DIR) describe --long "--match=*.*.*" 2>/dev/null || git -C $(SOURCE_DIR) log -n1 --pretty=format:g%h)
 SOURCE_VERSION:=$(shell echo $(GIT_VERSION) | sed -E 's@([^-]*)-.*$$@\1@g')
 GIT_REVISION:=$(shell echo $(GIT_VERSION) | sed -E 's@[^-]*-([^-])*-.*$$@\1@g')
 DEBIAN_REVISION:=$(shell echo $$(($(GIT_REVISION)+1)))
