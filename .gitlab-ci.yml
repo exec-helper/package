@@ -80,8 +80,8 @@ stages:
         - sudo pacman -Syu --noconfirm --needed
         - sudo pacman -S --noconfirm --needed make sed lsb-release sudo git base-devel lsb-release
         - *install_gitchangelog_arch
-        - echo '$CI_PROJECT_DIR'
-        - git config --global --add safe.directory '$CI_PROJECT_DIR/exec-helper'
+        - echo "${CI_PROJECT_DIR}"
+        - git config --global --add safe.directory "${CI_PROJECT_DIR}/exec-helper"
         - make "PREFIX=${PWD}/${ARTIFACT_DIR}" ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
@@ -251,7 +251,7 @@ arch-linux:upload:
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
         - echo "Making targets = ${MAKE_TARGETS}"
-        - git -C exec-helper pull --tags
+        - git -C exec-helper fetch --tags
         - make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
