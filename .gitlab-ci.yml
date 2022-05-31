@@ -317,6 +317,10 @@ ubuntu-focal:prepare:
     <<: *dpkg_prepare
     image: ubuntu:focal
 
+ubuntu-jammy:prepare:
+    <<: *dpkg_prepare
+    image: ubuntu:jammy
+
 ubuntu-rolling:prepare:
     <<: *dpkg_prepare
     image: ubuntu:rolling
@@ -346,6 +350,13 @@ ubuntu-focal:source:
     image: ubuntu:focal
     needs:
         - job: ubuntu-focal:prepare
+          artifacts: true
+
+ubuntu-jammy:source:
+    <<: *dpkg_source
+    image: ubuntu:jammy
+    needs:
+        - job: ubuntu-jammy:prepare
           artifacts: true
 
 ubuntu-rolling:source:
@@ -394,6 +405,18 @@ ubuntu-focal:binary:
     image: ubuntu:focal
     needs:
         - job: ubuntu-focal:prepare
+          artifacts: true
+    before_script:
+        - export DEBIAN_FRONTEND=noninteractive
+        - debconf-set-selections dpkg/debconf
+        - apt update
+        - apt-get install --yes git build-essential make cmake bison flex python3
+
+ubuntu-jammy:binary:
+    <<: *dpkg_binary
+    image: ubuntu:jammy
+    needs:
+        - job: ubuntu-jammy:prepare
           artifacts: true
     before_script:
         - export DEBIAN_FRONTEND=noninteractive
@@ -460,6 +483,17 @@ ubuntu-focal:lint:
         - job: ubuntu-focal:binary
           artifacts: true
 
+ubuntu-jammy:lint:
+    <<: *dpkg_lint
+    image: ubuntu:jammy
+    needs:
+        - job: ubuntu-jammy:prepare
+          artifacts: true
+        - job: ubuntu-jammy:source
+          artifacts: true
+        - job: ubuntu-jammy:binary
+          artifacts: true
+
 ubuntu-rolling:lint:
     <<: *dpkg_lint
     image: ubuntu:rolling
@@ -501,6 +535,13 @@ ubuntu-focal:verify:
     image: ubuntu:focal
     needs:
         - job: ubuntu-focal:binary
+          artifacts: true
+
+ubuntu-jammy:verify:
+    <<: *dpkg_verify
+    image: ubuntu:jammy
+    needs:
+        - job: ubuntu-jammy:binary
           artifacts: true
 
 ubuntu-rolling:verify:
@@ -581,6 +622,15 @@ docker:ubuntu-focal:build:
         DOCKERFILE: "containers/docker/dpkg.Dockerfile"
         DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:focal"
 
+docker:ubuntu-jammy:build:
+    <<: *docker_build
+    needs: []
+    variables:
+        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-jammy"
+        WORKDIR: "."
+        DOCKERFILE: "containers/docker/dpkg.Dockerfile"
+        DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:jammy"
+
 docker:ubuntu-rolling:build:
     <<: *docker_build
     needs: []
@@ -642,6 +692,21 @@ docker:ubuntu-focal:upload:
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-focal"
         TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
+    only:
+        - master
+
+docker:ubuntu-jammy:upload:
+    <<: *docker_upload
+    needs:
+        - job: docker:ubuntu-jammy:build
+          artifacts: false
+        - job: ubuntu-jammy:lint
+          artifacts: false
+        - job: ubuntu-jammy:verify
+          artifacts: false
+    variables:
+        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-jammy"
+        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-jammy"
     only:
         - master
 
