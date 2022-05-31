@@ -249,10 +249,8 @@ arch-linux:upload:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme meson cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config liblua5.3-dev ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
+        - git -C exec-helper fetch --tags
         - echo "Making targets = ${MAKE_TARGETS}"
-        - git -C exec-helper fetch --tags
-        - git -C exec-helper fetch --tags
-        - git -C exec-helper describe --long "--match=*.*.*"
         - make ${MAKE_TARGETS}
     artifacts:
         expire_in: 1 day
@@ -272,6 +270,7 @@ arch-linux:upload:
         - apt-get install --assume-yes debhelper build-essential equivs devscripts sudo git lsb-release sed python3-pip python3-sphinx python3-sphinx-rtd-theme meson cmake libboost-program-options-dev libboost-filesystem-dev libboost-log-dev libyaml-cpp-dev libmsgsl-dev pkg-config liblua5.3-dev ${ADDITIONAL_BUILD_DEPENDENCIES}
         - *install_gitchangelog_debian
         - *enable_sudo_nobody
+        - git -C exec-helper fetch --tags
         - echo "Making targets = ${MAKE_TARGETS}"
         - make ${MAKE_TARGETS}
     artifacts:
