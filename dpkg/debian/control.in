@@ -31,4 +31,4 @@ Depends:
     ${misc:Depends}
 Description: How To Get Coffee In Peace: a shell meta-wrapper
  This package provides the exec-helper binaries and the man-page documentation.
-Homepage: https://github.com/bverhagen/exec-helper
+Homepage: https://github.com/exec-helper/source
