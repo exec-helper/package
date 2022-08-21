@@ -17,14 +17,14 @@
 
 
 Name:           exec-helper
-Version:        0.7.0
-Release:        0
+Version:        @SHORT_VERSION@
+Release:        @RELEASE@
 Summary:        How To Get Coffee In Peace: a shell meta-wrapper
 
 License:        BSD
 URL:            https://github.com/exec-helper/source
 Source0:        %{name}-%{version}.tar.gz
-BuildRequires:  clang meson cmake libboost_program_options-devel libboost_filesystem-devel libboost_log-devel yaml-cpp-devel lua53-devel python3-Sphinx python3-sphinx_rtd_theme git lsb-release pkg-config
+BuildRequires:  clang meson cmake libboost_program_options-devel libboost_filesystem-devel libboost_log-devel yaml-cpp-devel lua53-devel python3-Sphinx python3-sphinx_rtd_theme pkg-config
 
 Requires:       libboost_program_options1_80_0 libboost_filesystem1_80_0 libboost_log1_80_0 libyaml-cpp0_7 lua53
 
