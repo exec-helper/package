@@ -29,7 +29,7 @@ copyright := Copyright (c) $(shell date +'%Y') Bart Verhagen
 	dh $@ '--sourcedirectory=${source_directory}' '--builddirectory=${build_directory}'
 
 override_dh_auto_configure:
-	dh_auto_configure -- --unity on -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "version=${version}" -D "copyright=${copyright}" -D "use-system-yaml-cpp=enabled" -D "use-system-gsl=enabled" -D "use-system-lua=enabled"
+	dh_auto_configure -- --unity on -D "usage-documentation=true" -D "api-documentation=false" -D "plugins-prefix=/usr/share/exec-helper/plugins" -D "test=false" -D "version=${version}" -D "copyright=${copyright}" -D "use-system-yaml-cpp=enabled" -D "use-system-lua=enabled"
 
 override_dh_auto_test:
 	$(build_directory)/src/applications/exec-helper --help 2>/dev/null | grep --silent 'Usage'

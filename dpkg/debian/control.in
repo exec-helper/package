@@ -10,7 +10,6 @@ Build-Depends:
     libboost-filesystem-dev,
     libboost-log-dev,
     libyaml-cpp-dev (>= 0.5.2),
-    libmsgsl-dev,
     liblua5.3-dev,
     python3-sphinx,
     python3-sphinx-rtd-theme,
