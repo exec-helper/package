@@ -474,17 +474,6 @@ ubuntu-rolling:lint:
         - job: ubuntu-rolling:binary
           artifacts: true
 
-ubuntu-devel:lint:
-    <<: *dpkg_lint
-    image: ubuntu:devel
-    needs:
-        - job: ubuntu-devel:prepare
-          artifacts: true
-        - job: ubuntu-devel:source
-          artifacts: true
-        - job: ubuntu-devel:binary
-          artifacts: true
-
 dpkg:verify:
     <<: *dpkg_verify
     image: debian:testing
