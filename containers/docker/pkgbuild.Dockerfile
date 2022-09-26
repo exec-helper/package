@@ -15,7 +15,7 @@ RUN sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/ma
 
 COPY . /exec-helper
 RUN sudo chown -R awesome:awesome /exec-helper
-WORKDIR /exec-helper 
+WORKDIR /exec-helper
 RUN make TARGET=binary arch
 
 

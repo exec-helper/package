@@ -94,7 +94,7 @@ stages:
         ARTIFACT_DIR: binary-package
     script:
         - sudo pacman -Sy --noconfirm --needed base-devel sudo libffi
-        - yay -S --noconfirm --needed python-gitchangelog
+        - *install_gitchangelog_arch
         - mkdir --mode 777 --parents "${ARTIFACT_DIR}"
         - export "PKGDEST=$(pwd)/${ARTIFACT_DIR}"
         - export "BUILD_CONF=$(pwd)/pkgbuild/makepkg.conf"
@@ -316,10 +316,6 @@ debian-testing:prepare:
     <<: *dpkg_prepare
     image: debian:testing
 
-ubuntu-focal:prepare:
-    <<: *dpkg_prepare
-    image: ubuntu:focal
-
 ubuntu-jammy:prepare:
     <<: *dpkg_prepare
     image: ubuntu:jammy
@@ -346,13 +342,6 @@ debian-testing:source:
     image: debian:testing
     needs:
         - job: debian-testing:prepare
-          artifacts: true
-
-ubuntu-focal:source:
-    <<: *dpkg_source
-    image: ubuntu:focal
-    needs:
-        - job: ubuntu-focal:prepare
           artifacts: true
 
 ubuntu-jammy:source:
@@ -396,18 +385,6 @@ debian-testing:binary:
     image: debian:testing
     needs:
         - job: debian-testing:prepare
-          artifacts: true
-    before_script:
-        - export DEBIAN_FRONTEND=noninteractive
-        - debconf-set-selections dpkg/debconf
-        - apt update
-        - apt-get install --yes git build-essential make cmake bison flex python3
-
-ubuntu-focal:binary:
-    <<: *dpkg_binary
-    image: ubuntu:focal
-    needs:
-        - job: ubuntu-focal:prepare
           artifacts: true
     before_script:
         - export DEBIAN_FRONTEND=noninteractive
@@ -475,17 +452,6 @@ debian-testing:lint:
         - job: debian-testing:binary
           artifacts: true
 
-ubuntu-focal:lint:
-    <<: *dpkg_lint
-    image: ubuntu:focal
-    needs:
-        - job: ubuntu-focal:prepare
-          artifacts: true
-        - job: ubuntu-focal:source
-          artifacts: true
-        - job: ubuntu-focal:binary
-          artifacts: true
-
 ubuntu-jammy:lint:
     <<: *dpkg_lint
     image: ubuntu:jammy
@@ -531,13 +497,6 @@ debian-testing:verify:
     image: debian:testing
     needs:
         - job: debian-testing:binary
-          artifacts: true
-
-ubuntu-focal:verify:
-    <<: *dpkg_verify
-    image: ubuntu:focal
-    needs:
-        - job: ubuntu-focal:binary
           artifacts: true
 
 ubuntu-jammy:verify:
@@ -616,15 +575,6 @@ docker:debian-testing:build:
         DOCKERFILE: "containers/docker/dpkg.Dockerfile"
         DOCKER_ARGS: "--build-arg BASE_IMAGE=debian:testing"
 
-docker:ubuntu-focal:build:
-    <<: *docker_build
-    needs: []
-    variables:
-        IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-focal"
-        WORKDIR: "."
-        DOCKERFILE: "containers/docker/dpkg.Dockerfile"
-        DOCKER_ARGS: "--build-arg BASE_IMAGE=ubuntu:focal"
-
 docker:ubuntu-jammy:build:
     <<: *docker_build
     needs: []
@@ -680,21 +630,6 @@ docker:debian-testing:upload:
     variables:
         SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:debian-testing"
         TARGET_IMAGE: "bverhagen/exec-helper:debian-testing"
-    only:
-        - master
-
-docker:ubuntu-focal:upload:
-    <<: *docker_upload
-    needs:
-        - job: docker:ubuntu-focal:build
-          artifacts: false
-        - job: ubuntu-focal:lint
-          artifacts: false
-        - job: ubuntu-focal:verify
-          artifacts: false
-    variables:
-        SOURCE_IMAGE: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_SHA}:ubuntu-focal"
-        TARGET_IMAGE: "bverhagen/exec-helper:ubuntu-focal"
     only:
         - master
 
