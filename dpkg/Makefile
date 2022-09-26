@@ -16,7 +16,7 @@ SOURCE_CHANGES_FILE:=$(PROJECT_NAME)_$(VERSION)_source.changes
 
 DSC_FILE:=$(PROJECT_NAME)_$(VERSION).dsc
 
-DISTRIBUTION:=$(shell lsb_release --codename --short)
+DISTRIBUTION:=$(shell lsb_release --release --short)
 SYSTEM_DESCRIPTION:=$(shell lsb_release --description --short)
 
 BUILD_DIR:=build
