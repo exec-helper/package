@@ -123,7 +123,7 @@ stages:
     variables:
         BINARY_DIR: binary-package
     before_script:
-        - pacman -Syu --noconfirm --needed which
+        - pacman -Syu --noconfirm --needed which yaml-cpp boost-libs gcc-libs
         # Activate installation of man page etc.
         - sed -i 's/NoExtract.*$//g' /etc/pacman.conf
         # Install binary package
