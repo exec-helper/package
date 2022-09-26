@@ -19,9 +19,8 @@ RUN sudo sh -c 'curl -sSL https://raw.githubusercontent.com/vaab/gitchangelog/ma
 # Build the package
 COPY . /exec-helper
 WORKDIR /exec-helper
-RUN git config --global --add safe.directory /exec-helper/exec-helper
 RUN chmod a+w dpkg
-RUN sudo -u nobody make -C dpkg binary
+RUN make -C dpkg binary
 
 
 # Install the package in a 'clean' environment
